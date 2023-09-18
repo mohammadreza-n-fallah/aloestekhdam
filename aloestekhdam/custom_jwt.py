@@ -61,12 +61,12 @@ class JWTAuthentication(authentication.BaseAuthentication):
 
         try:
             refresh_token_obj = RefreshToken.objects.get(user=user)
-            return refresh_token_obj.token, refresh_token
+            return access_token, refresh_token
 
         except RefreshToken.DoesNotExist:
-            create_new_isnstance =RefreshToken.objects.create(user=user, token=refresh_token)
+            create_new_isnstance = RefreshToken.objects.create(user=user, token=refresh_token)
 
-            return create_new_isnstance.token, refresh_token
+            return access_token, refresh_token
 
     @classmethod
     def get_the_token_from_header(cls, token):

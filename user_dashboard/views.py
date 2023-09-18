@@ -5,9 +5,9 @@ from rest_framework.views import APIView
 from jobads.models import Job , JobCategory , JobInfo , City , JobFacilitie , JobIndustry , JobSkill
 from jobads.serializers import JobSerializer , JobInfoSerializer
 from rest_framework.response import Response
+from aloestekhdam.custom_jwt import JWTAuthentication
 from django.contrib.auth.hashers import check_password
 from rest_framework import status
-from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.permissions import IsAuthenticated
 from random import randint
 
@@ -30,9 +30,13 @@ class SignUpViewSet(APIView):
             return Response({'error' : f'{e} field is require'} , status=status.HTTP_400_BAD_REQUEST)
         try:
             data = CustomUser.save_user(username , password , phone_number , email , user_type , method)
+            JWTAuthentication.create_jwt(data['info'])
         except Exception  as e:
-            return Response({'error' : str(e)})
-        return Response (data)  
+            return Response({'error' : str(e)} , status=status.HTTP_400_BAD_REQUEST)
+        if data['errors'] != True:
+            s_data = UserSerializer(data['info']).data
+            return Response ({"info" : s_data} , status=status.HTTP_201_CREATED)
+        return Response ({'info' : data['info']} , status=status.HTTP_400_BAD_REQUEST)
 
 
 
@@ -47,7 +51,11 @@ class LoginViewSet(APIView):
             return Response({'error' : 'phone_number_or_password_is_empty'} , status=status.HTTP_400_BAD_REQUEST)
         data = CustomUser.objects.filter(phone_number=phone_number).first()
         if data != None and check_password(password , data.password):
-            tokens = generate_tokens(data)
+            tokens = JWTAuthentication.create_jwt(data)
+            tokens = {
+                'refresh' : tokens[1],
+                'access' : tokens[0]
+            }
             return Response(tokens , status=status.HTTP_200_OK)
         return Response({'error' : 'phone_number_or_password_is_invalid'} , status=status.HTTP_401_UNAUTHORIZED)
 

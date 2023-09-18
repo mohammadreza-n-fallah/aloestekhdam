@@ -4,18 +4,14 @@ from rest_framework.authtoken.models import Token
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager , PermissionsMixin
 from django.contrib.auth.hashers import make_password
-from aloestekhdam.tokens import generate_tokens
+# from aloestekhdam.custom_jwt import JWTAuthentication
 from json import load
 from datetime import timedelta , timezone
 
 
 class CustomUserManager(BaseUserManager):
-
-    def normalize_phone_number(self, phone_number):
-        return phone_number.lower()
     
     def create_user(self, phone_number, password=None, **extra_fields):
-        phone_number = self.normalize_phone_number(phone_number)
         user = self.model(phone_number=phone_number, **extra_fields)
         user.set_password(password)
         user.save()
@@ -71,13 +67,12 @@ class CustomUser(AbstractBaseUser , PermissionsMixin):
             errors['number'] = 'number_is_not_valid'
         if len(errors) == 0:
             instance = CustomUser.objects.create(
-            username = username,
-            password = make_password(password),
-            phone_number = phone_number,
-            email = email,
-            user_type = user_type,
+                username = username,
+                password = make_password(password),
+                phone_number = phone_number,
+                email = email,
+                user_type = user_type,
             )
-            generate_tokens(instance)
             if method == 'karjo':
                 instance.has_company = False
                 instance.save()
@@ -85,14 +80,14 @@ class CustomUser(AbstractBaseUser , PermissionsMixin):
                 instance.has_company = True
                 instance.save()
             else:
-                return ({'error' : 'method_not_allowed'})
-            return {'success':username}
+                return ({'info' : 'method_not_allowed' , 'errors' : True})
+            return {'info' : instance , 'errors' : False}
         else:
-            return errors
+            return {'info' : errors , 'errors' : True}
 
 
     REQUIRED_FIELDS = []
-    USERNAME_FIELD = 'username'
+    USERNAME_FIELD = 'phone_number'
 
     objects = CustomUserManager()
 
