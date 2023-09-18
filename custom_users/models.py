@@ -1,34 +1,36 @@
 from django.db import models
+from django.conf import settings
 from rest_framework.authtoken.models import Token
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager , PermissionsMixin
 from django.contrib.auth.hashers import make_password
 from aloestekhdam.tokens import generate_tokens
 from json import load
+from datetime import timedelta , timezone
 
 
 class CustomUserManager(BaseUserManager):
 
-    def normalize_username(self, username):
-        return username.lower()
+    def normalize_phone_number(self, phone_number):
+        return phone_number.lower()
     
-    def create_user(self, username, password=None, **extra_fields):
-        username = self.normalize_username(username)
-        user = self.model(username=username, **extra_fields)
+    def create_user(self, phone_number, password=None, **extra_fields):
+        phone_number = self.normalize_phone_number(phone_number)
+        user = self.model(phone_number=phone_number, **extra_fields)
         user.set_password(password)
         user.save()
         return user
 
-    def create_superuser(self, username, password=None, **extra_fields):
+    def create_superuser(self, phone_number, password=None, **extra_fields):
 
-        user = self.create_user(username, password, **extra_fields)
+        user = self.create_user(phone_number, password, **extra_fields)
         user.is_superuser = True
         user.is_staff = True
         user.save()
         return user
 
-    def get_by_natural_key(self, username):
-        return self.get(username=username)
+    def get_by_natural_key(self, phone_number):
+        return self.get(phone_number=phone_number)
 
 
 
@@ -41,6 +43,7 @@ class CustomUser(AbstractBaseUser , PermissionsMixin):
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
     email = models.EmailField(max_length=100 , blank=True)
+    balance = models.CharField(max_length=500 , default=0 , blank=True)
     has_company = models.BooleanField(default=False)
     organization_size = models.CharField(max_length=250 , blank=True)
     company_name = models.CharField(max_length=255 , blank=True)
@@ -94,3 +97,12 @@ class CustomUser(AbstractBaseUser , PermissionsMixin):
     objects = CustomUserManager()
 
 
+
+class RefreshToken(models.Model):
+    id = models.AutoField(primary_key=True)
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    token = models.CharField(max_length=255, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def is_expired(self):
+        return self.created_at + timedelta(days=settings.JWT_CONF['REFRESH_TOKEN_LIFETIME_DAYS']) <= timezone.now()

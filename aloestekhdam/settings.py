@@ -158,9 +158,9 @@ CKEDITOR_UPLOAD_PATH = "uploads/"
 #     ]
 # }
 
-SIMPLE_JWT = {
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=15),
-    'ROTATE_REFRESH_TOKENS': True,
+JWT_CONF = {
+    'ACCESS_TOKEN_LIFETIME_HOURS': 5,
+    'REFRESH_TOKEN_LIFETIME_DAYS': 30,
 }
 
 AUTH_USER_MODEL = 'custom_users.CustomUser'
