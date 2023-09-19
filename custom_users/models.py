@@ -49,7 +49,6 @@ class CustomUser(AbstractBaseUser , PermissionsMixin):
     phone_number = models.CharField(max_length=11 , unique=True)
     phone_number_verfiy = models.BooleanField(default=False)
     user_type = models.CharField(max_length=250)
-    token = models.TextField(blank=True , null=True)
 
 
     def save_user(username , password , phone_number , email , user_type , method):
