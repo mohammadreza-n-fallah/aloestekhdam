@@ -165,7 +165,7 @@ JWT_CONF = {
 
 AUTH_USER_MODEL = 'custom_users.CustomUser'
 
-
+CSRF_TRUSTED_ORIGINS=['https://*.aloestekhdam.com']
 
 STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 DEFAULT_FILE_STORAGE = 'aloestekhdam.custom_s3.CustomS3Boto3Storage'
