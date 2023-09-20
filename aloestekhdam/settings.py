@@ -164,3 +164,14 @@ JWT_CONF = {
 }
 
 AUTH_USER_MODEL = 'custom_users.CustomUser'
+
+
+
+STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+DEFAULT_FILE_STORAGE = 'aloestekhdam.custom_s3.CustomS3Boto3Storage'
+AWS_ACCESS_KEY_ID = 'pjpI0UzVpv3q8Wqi5o4r'
+AWS_SECRET_ACCESS_KEY = 'N3N41QPIIpYVaJIH8JbsGCAJQ2GHzhDLBGSVVofy'
+AWS_STORAGE_BUCKET_NAME = 'aloestekhdam'
+STATIC_URL = f'https://storage.avalamozesh.com/{AWS_STORAGE_BUCKET_NAME}/static/'
+AWS_S3_ENDPOINT_URL = 'https://storage.avalamozesh.com'
+AWS_QUERYSTRING_AUTH = False
