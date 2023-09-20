@@ -8,4 +8,4 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CustomUser
-        exclude = ['token' , 'user_type']
+        exclude = ['user_type']
