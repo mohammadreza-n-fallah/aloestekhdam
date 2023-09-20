@@ -68,6 +68,11 @@ MIDDLEWARE = [
 
 CORS_ORIGIN_ALLOW_ALL = True
 
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:3000',
+    'https://aloestekhdam.com'
+]
+
 ALLOWED_HOSTS = ['*']
 
 ROOT_URLCONF = 'aloestekhdam.urls'
