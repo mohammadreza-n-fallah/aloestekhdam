@@ -32,6 +32,7 @@ class Job (models.Model):
     title = models.CharField(max_length=500 , unique=True)
     description = models.TextField()
     work_time = models.CharField(max_length=250)
+    work_days = models.CharField(max_length=250)
     cooperation = models.CharField(max_length=100)
     income_range = models.CharField(max_length=250)
     image = models.FileField(blank=True)
