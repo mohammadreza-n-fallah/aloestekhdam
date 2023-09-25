@@ -2,7 +2,7 @@ from custom_users.models import CustomUser
 from custom_users.serializers import UserSerializer
 from aloestekhdam.tokens import generate_tokens
 from rest_framework.views import APIView
-from jobads.models import Job , JobCategory , JobInfo , City , JobFacilitie , JobIndustry , JobSkill
+from jobads.models import Job , JobCategory , JobInfo , JobFacilitie , JobSkill
 from jobads.serializers import JobSerializer , JobInfoSerializer
 from rest_framework.response import Response
 from aloestekhdam.custom_jwt import JWTAuthentication
@@ -23,13 +23,14 @@ class SignUpViewSet(APIView):
             password = request.data['password']
             method = request.data['method']
             phone_number = request.data['phone_number']
+            city = request.data['city']
             email = request.data['email']
             user_type = 'causal'
         except KeyError as e:
             e = str(e).replace("'" , '' , -1)
             return Response({'error' : f'{e} field is require'} , status=status.HTTP_400_BAD_REQUEST)
         try:
-            data = CustomUser.save_user(username , password , phone_number , email , user_type , method)
+            data = CustomUser.save_user(username , password , phone_number , email , user_type , city, method)
             JWTAuthentication.create_jwt(data['info'])
         except Exception  as e:
             return Response({'error' : str(e)} , status=status.HTTP_400_BAD_REQUEST)
@@ -90,12 +91,12 @@ class GetUserDataViewSet(APIView):
 
 class JobCreateViewSet(APIView):
 
-    # authentication_classes = [JWTAuthentication]
-    # permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
 
     def post(self , request):
-        username = 'amirali'
-        user = CustomUser.objects.filter(username=username).first()
+        phone_number = request.user
+        user = CustomUser.objects.filter(phone_number=phone_number).first()
         if user != None:
             if user.has_company == True:
                 user_data = request.data
@@ -103,6 +104,13 @@ class JobCreateViewSet(APIView):
                     title = user_data['title']
                     description = user_data['description']
                     work_time = user_data['work_time']
+                    work_days = user_data['work_days']
+                    state = user_data['state']
+                    gender = user_data['gender']
+                    work_experience = user_data['work_experience']
+                    education_group = user_data['education_group']
+                    education_level = user_data['education_level']
+                    business_trip = user_data['business_trip']
                     max_age = user_data['max_age']
                     min_age = user_data['min_age']
                     cooperation = user_data['cooperation']
@@ -111,16 +119,15 @@ class JobCreateViewSet(APIView):
                     owner = user
                     tags = user_data['tags']
                     category = JobCategory.objects.filter(category=user_data['category']).first()
-                    city = City.objects.filter(city_name=user_data['city_name']).first()
+                    city = user.city.all().first()
                     jobfacilitie = JobFacilitie.objects.filter(facilitie=user_data['jobfacilitie']).first()
                     job_skill = user_data['job_skill']
                     job_level = user_data['job_level']
-                    slug = user_data['slug']
+                    slug = title
                 except Exception as e:
                     e = str(e).replace("'"  , "" , -1)
                     return Response({'error' : f'{e}_is_required'} , status=status.HTTP_400_BAD_REQUEST)
-
-                if category != None and city != None and jobfacilitie != None:
+                if category != None and jobfacilitie != None:
                     data = Job.objects.create(
                         title = title,
                         description = description,
@@ -128,15 +135,22 @@ class JobCreateViewSet(APIView):
                         max_age = max_age,
                         cooperation = cooperation,
                         min_age = min_age,
+                        work_days = work_days,
+                        state = state,
+                        gender = gender,
+                        work_experience = work_experience,
+                        education_group = education_group,
+                        education_level = education_level,
+                        business_trip = business_trip,
                         income_range = income_range,
                         location = location,
+                        city = city,
                         owner = owner,
                         tags = tags,
                         slug = slug,
                         status = 'waiting-confirm',
                     )
                     data.category.set([category])
-                    data.city.set([city])
                     data.facilitie.set([jobfacilitie])
                     JobSkill.objects.create(
                         skill = job_skill,
@@ -152,8 +166,11 @@ class JobCreateViewSet(APIView):
 
 class JobModifyViewSet(APIView):
 
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
     def put(self, request):
-        username = 'amirali'
+        username = request.user
         user_data = request.data
         user_job_slug = user_data['job_slug']
         try:
@@ -188,7 +205,7 @@ class JobModifyViewSet(APIView):
         return Response({'error': 'job_slug_is_empty'}, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request):
-        username = 'amirali'
+        username = request.user
         user_data = request.data
         user_job_slug = user_data['job_slug']
         if user_job_slug:
@@ -199,9 +216,11 @@ class JobModifyViewSet(APIView):
 
 
 class AddAndEditUserCompamyViewSet(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
 
     def put(self, request):
-        username = 'amirali'
+        username = request.user
         user = CustomUser.objects.filter(username=username).first()
         if user:
             user_data = request.data
@@ -231,9 +250,11 @@ class AddAndEditUserCompamyViewSet(APIView):
 
 class JobInfoCreate(APIView):
 
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
 
     def post(self , request):
-        user = 'amirali'
+        user = request.user
         user_data = request.data
         job_slug = user_data['job_slug']
         if job_slug:
@@ -247,9 +268,11 @@ class JobInfoCreate(APIView):
     
 
 class JobInfoModify(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
 
     def put(self ,request):
-        user = 'amirali'
+        user = request.user
         user_data = request.data
         job_id = user_data['job_id']
         job_slug = user_data['job_slug']
@@ -264,7 +287,8 @@ class JobInfoModify(APIView):
         
     
     def delete(self , request):
-        user = 'amirali'
+        user = request.user
+
         user_data = request.data
         job_id = user_data['job_id']
         job_slug = user_data['job_slug']
@@ -280,9 +304,11 @@ class JobInfoModify(APIView):
 
 
 class GetUserAdsViewSet(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
 
     def get(self , request):
-        username = 'amirali'
+        username = request.user
         query = request.GET.get('status')
         user = CustomUser.objects.filter(username=username).first()
         if query == 'all':

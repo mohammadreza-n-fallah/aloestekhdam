@@ -41,17 +41,22 @@ class CustomUser(AbstractBaseUser , PermissionsMixin):
     email = models.EmailField(max_length=100 , blank=True)
     balance = models.CharField(max_length=500 , default=0 , blank=True)
     has_company = models.BooleanField(default=False)
+    industry = models.CharField(max_length=250)
+    city = models.ManyToManyField('custom_users.City')
+    service_and_products = models.CharField(max_length=250)
+    description_of_company = models.TextField()
     organization_size = models.CharField(max_length=250 , blank=True)
     company_name = models.CharField(max_length=255 , blank=True)
     type_of_activity = models.CharField(max_length=250 , blank=True)
     established_year = models.CharField(max_length=250 , blank=True)
+    brand = models.CharField(max_length=250)
     ownership = models.CharField(max_length=250 , blank=True)
     phone_number = models.CharField(max_length=11 , unique=True)
     phone_number_verfiy = models.BooleanField(default=False)
     user_type = models.CharField(max_length=250)
 
 
-    def save_user(username , password , phone_number , email , user_type , method):
+    def save_user(username , password , phone_number , email , user_type , city , method):
         errors = dict()
         number_file = open('validated_phones.json' , 'rb')
         number_list = load(number_file)
@@ -71,7 +76,7 @@ class CustomUser(AbstractBaseUser , PermissionsMixin):
                 phone_number = phone_number,
                 email = email,
                 user_type = user_type,
-            )
+            ).city.set([city])
             if method == 'karjo':
                 instance.has_company = False
                 instance.save()
@@ -100,3 +105,10 @@ class RefreshToken(models.Model):
 
     def is_expired(self):
         return self.created_at + timedelta(days=settings.JWT_CONF['REFRESH_TOKEN_LIFETIME_DAYS']) <= timezone.now()
+
+class City(models.Model):
+    city_name = models.CharField(max_length=100)
+    homepage = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.city_name

@@ -36,7 +36,8 @@ class Job (models.Model):
     cooperation = models.CharField(max_length=100)
     income_range = models.CharField(max_length=250)
     image = models.FileField(blank=True)
-    city = models.ManyToManyField('jobads.City')
+    city = models.CharField(max_length=250)
+    state = models.CharField(max_length=250)
     location = models.CharField(max_length=250)
     owner = models.ForeignKey(CustomUser , on_delete=models.CASCADE , blank=True)
     telecommuting = models.BooleanField(default=False)
@@ -83,12 +84,7 @@ class JobInfo(models.Model):
 
 
 
-class City(models.Model):
-    city_name = models.CharField(max_length=100)
-    homepage = models.BooleanField(default=False)
 
-    def __str__(self):
-        return self.city_name
     
 
 class JobSkill(models.Model):
@@ -107,7 +103,3 @@ class JobFacilitie(models.Model):
         return f'{self.facilitie}'
     
 
-
-class JobIndustry(models.Model):
-    industry = models.CharField(max_length=250)
-    job_post = models.ForeignKey(Job , on_delete=models.CASCADE , blank=True)
