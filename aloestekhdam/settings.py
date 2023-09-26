@@ -65,12 +65,19 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+CORS_ORIGIN_ALLOW_ALL = False
 
-CORS_ORIGIN_ALLOW_ALL = True
+CSRF_TRUSTED_ORIGINS = ['https://*.45.144.126.224', "https://45.144.126.224" , 'http://94.139.163.188' , 'http://94.139.163.188:5000']
+
+CORS_ALLOW_ALL_ORIGINS = False
 
 CORS_ALLOWED_ORIGINS = [
-    'http://localhost:3000',
-    'https://aloestekhdam.com'
+    'http://localhost:5000',
+    'https://aloestekhdam.com',
+    'http://45.144.126.224:9000',
+    'http://45.144.126.224',
+    'http://94.139.163.188:5000',
+    'http://94.139.163.188',
 ]
 
 ALLOWED_HOSTS = ['*']
@@ -94,7 +101,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'aloestekhdam.wsgi.application'
-
 
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
@@ -170,7 +176,7 @@ JWT_CONF = {
 
 AUTH_USER_MODEL = 'custom_users.CustomUser'
 
-CSRF_TRUSTED_ORIGINS=['https://*.aloestekhdam.com']
+CSRF_TRUSTED_ORIGINS=['https://*.aloestekhdam.com' , 'http://localhost:5000' , 'http://45.144.126.224:9000']
 
 STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 DEFAULT_FILE_STORAGE = 'aloestekhdam.custom_s3.CustomS3Boto3Storage'
