@@ -65,7 +65,7 @@ class JobCategory(models.Model):
 
 class JobSkill(models.Model):
     skill = models.CharField(max_length=100)
-    level = models.CharField(max_length=100)
+    level = models.CharField(max_length=100 , blank=True)
     job_post = models.ForeignKey(Job, on_delete=models.CASCADE, related_name='skill')
 
     def __str__(self):
