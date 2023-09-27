@@ -15,20 +15,17 @@ from random import randint
 class SignUpViewSet(APIView):
 
     def post(self, request):
-
         try:
             username = f'user_{randint(1, 1000)}'
             password = request.data['password']
             method = request.data['method']
             phone_number = request.data['phone_number']
-            city = request.data['city']
-            email = request.data['email']
             user_type = 'causal'
         except KeyError as e:
             e = str(e).replace("'", '', -1)
             return Response({'error': f'{e} field is require'}, status=status.HTTP_400_BAD_REQUEST)
         try:
-            data = CustomUser.save_user(username, password, phone_number, email, user_type, city, method)
+            data = CustomUser.save_user(username, password, phone_number, user_type, method)
             JWTAuthentication.create_jwt(data['info'])
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
@@ -91,8 +88,6 @@ class JobCreateViewSet(APIView):
     def post(self, request):
         phone_number = request.user
         user = CustomUser.objects.filter(phone_number=phone_number).first()
-        if user.has_company is False:
-            return Response({'error': 'user_has_no_company'}, status=status.HTTP_400_BAD_REQUEST)
         if user != None:
             if user.has_company == True:
                 user_data = request.data
@@ -101,7 +96,7 @@ class JobCreateViewSet(APIView):
                     description = user_data['description']
                     work_time = user_data['work_time']
                     work_days = user_data['work_days']
-                    state = user_data['state']
+                    city = user_data['city']
                     gender = user_data['gender']
                     work_experience = user_data['work_experience']
                     education_group = user_data['education_group']
@@ -115,7 +110,7 @@ class JobCreateViewSet(APIView):
                     owner = user
                     tags = user_data['tags']
                     category = JobCategory.objects.filter(category=user_data['category']).first()
-                    city = user.city.all().first()
+                    state = user.state.all().first()
                     jobfacilitie = JobFacilitie.objects.filter(facilitie=user_data['jobfacilitie']).first()
                     job_skill = user_data['job_skill']
                     job_level = user_data['job_level']
