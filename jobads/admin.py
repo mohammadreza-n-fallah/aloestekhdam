@@ -1,5 +1,4 @@
 from django.contrib import admin
-from .models import Job , JobInfo , JobCategory , JobSkill , JobFacilitie
+from .models import Job, JobCategory, JobSkill, JobFacilitie
 
-
-admin.site.register([Job , JobCategory , JobInfo , JobSkill , JobFacilitie])
+admin.site.register([Job, JobCategory, JobSkill, JobFacilitie])

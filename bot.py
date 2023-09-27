@@ -1,24 +1,19 @@
 import telebot
+from random import randint
 
-# Replace 'YOUR_BOT_TOKEN' with your actual bot token
-bot = telebot.TeleBot('6439029069:AAG34OOQDTouXDNeeUG1JwxX4vqXYYXvh8c')
+API_TOKEN = '6439029069:AAG34OOQDTouXDNeeUG1JwxX4vqXYYXvh8c'
 
-# Define a function to handle incoming messages
-@bot.message_handler(content_types=['text'])
-def handle_message(message):
-    # Check if the message is from a group chat (chat type is 'group')
-    if message.chat.type:
-        chat_id = message.chat.id
-        user_id = message.from_user.id
-        username = message.from_user.username
-        text = message.text.lower()  # Convert message text to lowercase
-        print (text)
+bot = telebot.TeleBot(API_TOKEN)
 
-        # Check if the lowercase message text is 'start'
-        if text == 'start':
-            # Reply to the message
-            bot.send_message(chat_id, f"Hello, {username}! You sent 'start'.")
+@bot.message_handler(func=lambda message: True)
+def send_koni(message):
+    if 'کو' in message.text or message.text == 'کانی':
+        random_koni = randint(1,10)
+        if random_koni % 2 == 0:
+            bot.reply_to(message, f'{message.from_user.first_name}\n تو یه کونی هستی.\nبیشتر از اینم نیستی کونی.')
+        else:
+            with open('koni.mp4', 'rb') as gif_file:
+                bot.send_animation(message.chat.id, gif_file)        
 
-# Start the bot
+
 bot.polling()
-

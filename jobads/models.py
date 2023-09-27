@@ -5,7 +5,6 @@ from custom_users.models import CustomUser
 from django.db.models import Q
 
 
-
 class JobQuerySet(models.QuerySet):
 
 
@@ -29,16 +28,14 @@ class JobManager(models.Manager):
 
 
 class Job (models.Model):
-    title = models.CharField(max_length=500 , unique=True)
+    title = models.CharField(max_length=250 , unique=True)
     description = models.TextField()
     work_time = models.CharField(max_length=250)
     work_days = models.CharField(max_length=250)
-    cooperation = models.CharField(max_length=100)
     income_range = models.CharField(max_length=250)
     image = models.FileField(blank=True)
     city = models.CharField(max_length=250)
     state = models.CharField(max_length=250)
-    location = models.CharField(max_length=250)
     owner = models.ForeignKey(CustomUser , on_delete=models.CASCADE , blank=True)
     telecommuting = models.BooleanField(default=False)
     gender = models.CharField(max_length=100)
@@ -54,9 +51,9 @@ class Job (models.Model):
     tags = models.CharField(max_length=500)
     business_trip = models.CharField(max_length=100)
     category = models.ManyToManyField('jobads.JobCategory')
-    status = models.CharField(max_length=100)
+    status = models.BooleanField(default=False)
     created = models.DateTimeField(auto_now_add=True)
-    slug = models.CharField(max_length=500 , unique=True)
+    slug = models.CharField(max_length=250 , unique=True)
 
     def __str__(self):
         return self.title
@@ -72,13 +69,6 @@ class JobCategory(models.Model):
         return self.category
 
 
-class JobInfo(models.Model):
-    job_post = models.ForeignKey(Job , on_delete=models.CASCADE , related_name='jobinfo')
-    user = models.ForeignKey(CustomUser , on_delete=models.CASCADE , blank=True)
-    requirement_text = models.CharField(max_length=500)
-
-    def __str__(self):
-        return self.requirement_text + '|' + str(self.id)
     
 
 

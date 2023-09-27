@@ -2,8 +2,8 @@ from custom_users.models import CustomUser
 from custom_users.serializers import UserSerializer
 from aloestekhdam.tokens import generate_tokens
 from rest_framework.views import APIView
-from jobads.models import Job , JobCategory , JobInfo , JobFacilitie , JobSkill
-from jobads.serializers import JobSerializer , JobInfoSerializer
+from jobads.models import Job, JobCategory, JobFacilitie, JobSkill
+from jobads.serializers import JobSerializer
 from rest_framework.response import Response
 from aloestekhdam.custom_jwt import JWTAuthentication
 from django.contrib.auth.hashers import check_password
@@ -12,14 +12,12 @@ from rest_framework.permissions import IsAuthenticated
 from random import randint
 
 
-
-
 class SignUpViewSet(APIView):
-    
-    def post(self , request):
+
+    def post(self, request):
 
         try:
-            username = f'user_{randint(1,1000)}'
+            username = f'user_{randint(1, 1000)}'
             password = request.data['password']
             method = request.data['method']
             phone_number = request.data['phone_number']
@@ -27,19 +25,17 @@ class SignUpViewSet(APIView):
             email = request.data['email']
             user_type = 'causal'
         except KeyError as e:
-            e = str(e).replace("'" , '' , -1)
-            return Response({'error' : f'{e} field is require'} , status=status.HTTP_400_BAD_REQUEST)
+            e = str(e).replace("'", '', -1)
+            return Response({'error': f'{e} field is require'}, status=status.HTTP_400_BAD_REQUEST)
         try:
-            data = CustomUser.save_user(username , password , phone_number , email , user_type , city, method)
+            data = CustomUser.save_user(username, password, phone_number, email, user_type, city, method)
             JWTAuthentication.create_jwt(data['info'])
-        except Exception  as e:
-            return Response({'error' : str(e)} , status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
         if data['errors'] != True:
             s_data = UserSerializer(data['info']).data
-            return Response ({"info" : s_data} , status=status.HTTP_201_CREATED)
-        return Response ({'info' : data['info']} , status=status.HTTP_400_BAD_REQUEST)
-
-
+            return Response({"info": s_data}, status=status.HTTP_201_CREATED)
+        return Response({'info': data['info']}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class LoginViewSet(APIView):
@@ -49,36 +45,35 @@ class LoginViewSet(APIView):
             phone_number = request.data['phone_number']
             password = request.data['password']
         except:
-            return Response({'error' : 'phone_number_or_password_is_empty'} , status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': 'phone_number_or_password_is_empty'}, status=status.HTTP_400_BAD_REQUEST)
         data = CustomUser.objects.filter(phone_number=phone_number).first()
-        if data != None and check_password(password , data.password):
+        if data != None and check_password(password, data.password):
             tokens = JWTAuthentication.create_jwt(data)
             tokens = {
-                'refresh' : tokens[1],
-                'access' : tokens[0]
+                'refresh': tokens[1],
+                'access': tokens[0]
             }
-            return Response(tokens , status=status.HTTP_200_OK)
-        return Response({'error' : 'phone_number_or_password_is_invalid'} , status=status.HTTP_401_UNAUTHORIZED)
+            return Response(tokens, status=status.HTTP_200_OK)
+        return Response({'error': 'phone_number_or_password_is_invalid'}, status=status.HTTP_401_UNAUTHORIZED)
 
 
 class CheckNumberLoginViewSet(APIView):
 
-    def get(self , request):
+    def get(self, request):
         phone_number = str()
         try:
             phone_number = request.GET.get('phone_number')
         except:
-            return Response({'error' : 'phone_number_is_empty'} , status=status.HTTP_400_BAD_REQUEST)
-        
+            return Response({'error': 'phone_number_is_empty'}, status=status.HTTP_400_BAD_REQUEST)
+
         data = CustomUser.objects.filter(phone_number=phone_number).first()
-        print (data)
+        print(data)
         if data:
-            return Response({'success' : 'phone_number_ok'} , status=status.HTTP_200_OK)
-        return Response({'error' : 'phone_number_not_found'} , status=status.HTTP_404_NOT_FOUND)
+            return Response({'success': 'phone_number_ok'}, status=status.HTTP_200_OK)
+        return Response({'error': 'phone_number_not_found'}, status=status.HTTP_404_NOT_FOUND)
 
-        
+
 class GetUserDataViewSet(APIView):
-
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
@@ -87,16 +82,16 @@ class GetUserDataViewSet(APIView):
         data = CustomUser.objects.filter(username=user.username).first()
         s_data = UserSerializer(data).data
         return Response(s_data)
-    
+
 
 class JobCreateViewSet(APIView):
-
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
-    def post(self , request):
+    def post(self, request):
         phone_number = request.user
         user = CustomUser.objects.filter(phone_number=phone_number).first()
+
         if user != None:
             if user.has_company == True:
                 user_data = request.data
@@ -125,47 +120,45 @@ class JobCreateViewSet(APIView):
                     job_level = user_data['job_level']
                     slug = title
                 except Exception as e:
-                    e = str(e).replace("'"  , "" , -1)
-                    return Response({'error' : f'{e}_is_required'} , status=status.HTTP_400_BAD_REQUEST)
+                    e = str(e).replace("'", "", -1)
+                    return Response({'error': f'{e}_is_required'}, status=status.HTTP_400_BAD_REQUEST)
                 if category != None and jobfacilitie != None:
                     data = Job.objects.create(
-                        title = title,
-                        description = description,
-                        work_time = work_time,
-                        max_age = max_age,
-                        cooperation = cooperation,
-                        min_age = min_age,
-                        work_days = work_days,
-                        state = state,
-                        gender = gender,
-                        work_experience = work_experience,
-                        education_group = education_group,
-                        education_level = education_level,
-                        business_trip = business_trip,
-                        income_range = income_range,
-                        location = location,
-                        city = city,
-                        owner = owner,
-                        tags = tags,
-                        slug = slug,
-                        status = 'waiting-confirm',
+                        title=title,
+                        description=description,
+                        work_time=work_time,
+                        max_age=max_age,
+                        cooperation=cooperation,
+                        min_age=min_age,
+                        work_days=work_days,
+                        state=state,
+                        gender=gender,
+                        work_experience=work_experience,
+                        education_group=education_group,
+                        education_level=education_level,
+                        business_trip=business_trip,
+                        income_range=income_range,
+                        location=location,
+                        city=city,
+                        owner=owner,
+                        tags=tags,
+                        slug=slug,
+                        status='waiting-confirm',
                     )
                     data.category.set([category])
                     data.facilitie.set([jobfacilitie])
                     JobSkill.objects.create(
-                        skill = job_skill,
-                        level = job_level,
-                        job_post = data
+                        skill=job_skill,
+                        level=job_level,
+                        job_post=data
                     )
-                    return Response({'sucess' : f'{title}_is_created'} , status=status.HTTP_406_NOT_ACCEPTABLE)
-                return Response({'error' : 'category_not_found'} , status=status.HTTP_406_NOT_ACCEPTABLE)
-            return Response({'error' : 'user_has_no_company'} , status=status.HTTP_406_NOT_ACCEPTABLE)
-        return Response({'error' : 'user_not_found'} , status=status.HTTP_401_UNAUTHORIZED)
-    
+                    return Response({'sucess': f'{title}_is_created'}, status=status.HTTP_406_NOT_ACCEPTABLE)
+                return Response({'error': 'category_not_found'}, status=status.HTTP_406_NOT_ACCEPTABLE)
+            return Response({'error': 'user_has_no_company'}, status=status.HTTP_406_NOT_ACCEPTABLE)
+        return Response({'error': 'user_not_found'}, status=status.HTTP_401_UNAUTHORIZED)
 
 
 class JobModifyViewSet(APIView):
-
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
@@ -244,78 +237,21 @@ class AddAndEditUserCompamyViewSet(APIView):
             return Response({'success': f'{company_name}_is_created'}, status=status.HTTP_200_OK)
 
         return Response({'error': 'user_not_found'}, status=status.HTTP_401_UNAUTHORIZED)
-    
-
-
-
-class JobInfoCreate(APIView):
-
-    authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAuthenticated]
-
-    def post(self , request):
-        user = request.user
-        user_data = request.data
-        job_slug = user_data['job_slug']
-        if job_slug:
-            user_job = Job.objects.filter(slug=job_slug).first()
-            data = JobInfo.objects.create(
-                job_post = user_job,
-                requirement_text = user_data['requirement_text'],
-            )
-            return Response({'success' : f'job_info_add_for_{str(user_job)}'} , status=status.HTTP_200_OK)
-        return Response({'error' : 'job_slug_is_empty'} , status=status.HTTP_400_BAD_REQUEST)
-    
-
-class JobInfoModify(APIView):
-    authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAuthenticated]
-
-    def put(self ,request):
-        user = request.user
-        user_data = request.data
-        job_id = user_data['job_id']
-        job_slug = user_data['job_slug']
-        if job_id and job_slug:
-            user_origin = CustomUser.objects.filter(username=user).first()
-            user_job = Job.objects.filter(slug=job_slug).first()
-            data = JobInfo.objects.filter(id=job_id , job_post = user_job , user=user_origin).first()
-            data.requirement_text = user_data['requirement_text']
-            data.save()
-            return Response({'success' : 'job_info_updated'} , status=status.HTTP_200_OK)
-        return Response({'error' : 'job_id_or_job_slug_is_empty'} , status=status.HTTP_400_BAD_REQUEST)
-        
-    
-    def delete(self , request):
-        user = request.user
-
-        user_data = request.data
-        job_id = user_data['job_id']
-        job_slug = user_data['job_slug']
-        if job_id and job_slug:
-            user_origin = CustomUser.objects.filter(username=user).first()
-            user_job = Job.objects.filter(slug=job_slug).first()
-            data = JobInfo.objects.filter(id=job_id , job_post = user_job , user=user_origin).first()
-            data.delete()
-            return Response({'success' : 'job_info_deleted'} , status=status.HTTP_200_OK)
-        return Response({'error' : 'job_id_or_job_slug_is_empty'} , status=status.HTTP_400_BAD_REQUEST)
-
-
 
 
 class GetUserAdsViewSet(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
-    def get(self , request):
+    def get(self, request):
         username = request.user
         query = request.GET.get('status')
         user = CustomUser.objects.filter(username=username).first()
         if query == 'all':
             data = Job.objects.filter(owner=user)
         else:
-            data = Job.objects.filter(owner=user , status=query)
+            data = Job.objects.filter(owner=user, status=query)
         if data != None:
-            s_data = JobSerializer(data , many=True).data
-            return Response(s_data , status=status.HTTP_200_OK)
-        return Response({'error' : 'data_not_found'} , status=status.HTTP_404_NOT_FOUND)
+            s_data = JobSerializer(data, many=True).data
+            return Response(s_data, status=status.HTTP_200_OK)
+        return Response({'error': 'data_not_found'}, status=status.HTTP_404_NOT_FOUND)

@@ -49,7 +49,7 @@ class CustomUser(AbstractBaseUser , PermissionsMixin):
     company_name = models.CharField(max_length=255 , blank=True)
     type_of_activity = models.CharField(max_length=250 , blank=True)
     established_year = models.CharField(max_length=250 , blank=True)
-    brand = models.CharField(max_length=250)
+    brand = models.CharField(max_length=250 , blank=True)
     ownership = models.CharField(max_length=250 , blank=True)
     phone_number = models.CharField(max_length=11 , unique=True)
     phone_number_verfiy = models.BooleanField(default=False)
