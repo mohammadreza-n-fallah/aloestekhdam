@@ -26,12 +26,12 @@ class SignUpViewSet(APIView):
             return Response({'error': f'{e} field is require'}, status=status.HTTP_400_BAD_REQUEST)
         try:
             data = CustomUser.save_user(username, password, phone_number, user_type, method)
-            JWTAuthentication.create_jwt(data['info'])
+            token = JWTAuthentication.create_jwt(data['info'])
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
         if data['errors'] != True:
             s_data = UserSerializer(data['info']).data
-            return Response({"info": s_data}, status=status.HTTP_201_CREATED)
+            return Response({'refresh' : token[0] , 'access' : token[1]}, status=status.HTTP_201_CREATED)
         return Response({'info': data['info']}, status=status.HTTP_400_BAD_REQUEST)
 
 
