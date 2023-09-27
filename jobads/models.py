@@ -7,28 +7,24 @@ from django.db.models import Q
 
 class JobQuerySet(models.QuerySet):
 
-
-    def search(self , query):
+    def search(self, query):
         lookup_title = Q(title__icontains=query)
         lookup_description = Q(description__icontains=query)
         qs = Job.objects.filter(lookup_title | lookup_description)
         return qs
 
 
-
 class JobManager(models.Manager):
 
     def get_queryset(self):
-        return JobQuerySet(self.model , using=self._db)
-    
-    def search(self , query):
+        return JobQuerySet(self.model, using=self._db)
+
+    def search(self, query):
         return self.get_queryset().search(query)
 
 
-
-
-class Job (models.Model):
-    title = models.CharField(max_length=250 , unique=True)
+class Job(models.Model):
+    title = models.CharField(max_length=250, unique=True)
     description = models.TextField()
     work_time = models.CharField(max_length=250)
     work_days = models.CharField(max_length=250)
@@ -36,7 +32,7 @@ class Job (models.Model):
     image = models.FileField(blank=True)
     city = models.CharField(max_length=250)
     state = models.CharField(max_length=250)
-    owner = models.ForeignKey(CustomUser , on_delete=models.CASCADE , blank=True)
+    owner = models.ForeignKey(CustomUser, on_delete=models.CASCADE, blank=True)
     telecommuting = models.BooleanField(default=False)
     gender = models.CharField(max_length=100)
     min_age = models.IntegerField()
@@ -53,43 +49,31 @@ class Job (models.Model):
     category = models.ManyToManyField('jobads.JobCategory')
     status = models.BooleanField(default=False)
     created = models.DateTimeField(auto_now_add=True)
-    slug = models.CharField(max_length=250 , unique=True)
+    slug = models.CharField(max_length=250, unique=True)
 
     def __str__(self):
         return self.title
-
 
 
 class JobCategory(models.Model):
     category = models.CharField(max_length=250)
     homepage = models.BooleanField(default=False)
 
-
-    def __str__ (self):
+    def __str__(self):
         return self.category
 
-
-    
-
-
-
-
-
-    
 
 class JobSkill(models.Model):
     skill = models.CharField(max_length=100)
     level = models.CharField(max_length=100)
-    job_post = models.ForeignKey(Job , on_delete=models.CASCADE)
+    job_post = models.ForeignKey(Job, on_delete=models.CASCADE, related_name='skill')
 
     def __str__(self):
         return f'{self.skill} | {self.level} | {self.job_post}'
-    
+
 
 class JobFacilitie(models.Model):
     facilitie = models.CharField(max_length=100)
 
     def __str__(self):
         return f'{self.facilitie}'
-    
-

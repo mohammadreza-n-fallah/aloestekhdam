@@ -7,6 +7,7 @@ from custom_users.models import CustomUser
 class JobSerializer(serializers.ModelSerializer):
     owner = serializers.SlugRelatedField('username', read_only=True)
     category = serializers.StringRelatedField(many=True)
+    job_skills = serializers.SerializerMethodField()
     # city = serializers.StringRelatedField(many=True)
     facilitie = serializers.StringRelatedField(many=True)
     company_info = serializers.SerializerMethodField()
@@ -18,10 +19,14 @@ class JobSerializer(serializers.ModelSerializer):
     def get_company_info(self, obj):
         owner = obj.owner
         custom_user = CustomUser.objects.filter(phone_number=owner).first()
-        print(owner)
         if custom_user:
             return CompanySerializer(custom_user).data
         return {}
+
+    def get_job_skills(self, obj):
+        data = obj.skill.filter()
+        return JobSkillSerializer(data, many=True).data
+
 
 
 class JobCategorySerializer(serializers.ModelSerializer):
@@ -33,4 +38,4 @@ class JobCategorySerializer(serializers.ModelSerializer):
 class JobSkillSerializer(serializers.ModelSerializer):
     class Meta:
         model = JobSkill
-        fields = []
+        fields = ['skill' , 'level']
