@@ -91,7 +91,8 @@ class JobCreateViewSet(APIView):
     def post(self, request):
         phone_number = request.user
         user = CustomUser.objects.filter(phone_number=phone_number).first()
-
+        if user.has_company is False:
+            return Response({'error': 'user_has_no_company'}, status=status.HTTP_400_BAD_REQUEST)
         if user != None:
             if user.has_company == True:
                 user_data = request.data
