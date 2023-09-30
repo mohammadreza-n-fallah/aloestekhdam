@@ -5,6 +5,10 @@ from custom_users.models import CustomUser
 from django.db.models import Q
 
 
+def cv_upload_to(instance, filename):
+    return f'users/user_cvs/{instance}/{filename}'
+
+
 class JobQuerySet(models.QuerySet):
 
     def search(self, query):
@@ -47,7 +51,7 @@ class Job(models.Model):
     tags = models.CharField(max_length=500)
     business_trip = models.CharField(max_length=100)
     category = models.ManyToManyField('jobads.JobCategory')
-    status = models.CharField(default='sent' , max_length=255)
+    status = models.CharField(default='sent', max_length=255)
     created = models.DateTimeField(auto_now_add=True)
     slug = models.CharField(max_length=250, unique=True)
 
@@ -65,7 +69,7 @@ class JobCategory(models.Model):
 
 class JobSkill(models.Model):
     skill = models.CharField(max_length=100)
-    level = models.CharField(max_length=100 , blank=True)
+    level = models.CharField(max_length=100, blank=True)
     job_post = models.ForeignKey(Job, on_delete=models.CASCADE, related_name='skill')
 
     def __str__(self):
@@ -77,3 +81,13 @@ class JobFacilitie(models.Model):
 
     def __str__(self):
         return f'{self.facilitie}'
+
+
+class CV(models.Model):
+    file_name = models.FileField(upload_to=cv_upload_to, blank=True, unique=True)
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    status = models.CharField(max_length=250, default='sent')
+    jobad = models.ForeignKey(Job, on_delete=models.CASCADE, related_name='cv')
+
+    def __str__(self):
+        return f'{self.user} | {self.jobad} | {self.status}'

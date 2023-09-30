@@ -2,7 +2,7 @@ from custom_users.models import CustomUser
 from custom_users.serializers import UserSerializer
 from aloestekhdam.tokens import generate_tokens
 from rest_framework.views import APIView
-from jobads.models import Job, JobCategory, JobFacilitie, JobSkill
+from jobads.models import Job, JobCategory, JobFacilitie, JobSkill, CV
 from jobads.serializers import JobSerializer
 from rest_framework.response import Response
 from aloestekhdam.custom_jwt import JWTAuthentication
@@ -288,3 +288,32 @@ class GetUserAdsViewSet(APIView):
             s_data = JobSerializer(data, many=True).data
             return Response(s_data, status=status.HTTP_200_OK)
         return Response({'error': 'data_not_found'}, status=status.HTTP_404_NOT_FOUND)
+
+
+class SendCVJobViewSet(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        try:
+            cv_file = request.data['cv_file']
+            slug = request.data['slug']
+        except Exception as e:
+            e = str(e).replace("'", '', -1)
+            return Response({'error': f'{e}_is_required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        user = request.user
+        user_data = CustomUser.objects.filter(phone_number=user).first()
+        job_data = Job.objects.filter(slug=request.data['slug']).first()
+        if user_data and job_data:
+            if not user_data.has_company:
+                if cv_file.name.split('.')[-1].lower() == 'pdf':
+                    data = CV.objects.create(
+                        file_name=cv_file,
+                        jobad=job_data,
+                        user=user_data
+                    )
+                    return Response({'success': 'cv_sent'}, status=status.HTTP_200_OK)
+
+            return Response({'error': 'not_allowed'}, status=status.HTTP_403_FORBIDDEN)
+        return Response({'error': 'user_or_job_not_found'}, status=status.HTTP_404_NOT_FOUND)

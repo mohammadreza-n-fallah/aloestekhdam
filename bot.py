@@ -9,11 +9,14 @@ bot = telebot.TeleBot(API_TOKEN)
 def send_koni(message):
     if 'کو' in message.text or message.text == 'کانی':
         random_koni = randint(1,10)
-        if random_koni % 2 == 0:
-            bot.reply_to(message, f'{message.from_user.first_name}\n تو یه کونی هستی.\nبیشتر از اینم نیستی کونی.')
+        if message.from_user.id == 6531030681:
+                bot.reply_to(message, f'{message.from_user.first_name}\n تو یه کونی نیستی.')
         else:
-            with open('koni.mp4', 'rb') as gif_file:
-                bot.send_animation(message.chat.id, gif_file)        
+            if random_koni % 2 == 0:
+                bot.reply_to(message, f'{message.from_user.first_name}\n تو یه کونی نیستی.')
+            else:
+                with open('koni.mp4', 'rb') as gif_file:
+                    bot.send_animation(message.chat.id, gif_file)        
 
 
 bot.polling()

@@ -29,23 +29,23 @@ class CustomUserManager(BaseUserManager):
 
 
 def image_upload_to(instance, filename):
-    return f'users/{instance}/{filename}'
+    return f'users/user_images/{instance}/{filename}'
 
 
 class CustomUser(AbstractBaseUser, PermissionsMixin):
     username = models.CharField(max_length=250, unique=True)
     password = models.CharField(max_length=250)
-    full_name = models.CharField(max_length=250)
-    image = models.FileField(upload_to=image_upload_to , blank=True)
+    full_name = models.CharField(max_length=250, blank=True)
+    image = models.FileField(upload_to=image_upload_to, blank=True)
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
     email = models.EmailField(max_length=100, blank=True)
     balance = models.CharField(max_length=500, default=0, blank=True)
     has_company = models.BooleanField(default=False)
-    industry = models.CharField(max_length=250)
+    industry = models.CharField(max_length=250, blank=True)
     state = models.ManyToManyField('custom_users.State', blank=True)
-    service_and_products = models.CharField(max_length=250)
-    description_of_company = models.TextField()
+    service_and_products = models.CharField(max_length=250, blank=True)
+    description_of_company = models.TextField(blank=True)
     organization_size = models.CharField(max_length=250, blank=True)
     company_name = models.CharField(max_length=255, blank=True)
     type_of_activity = models.CharField(max_length=250, blank=True)
