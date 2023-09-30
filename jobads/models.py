@@ -47,7 +47,7 @@ class Job(models.Model):
     tags = models.CharField(max_length=500)
     business_trip = models.CharField(max_length=100)
     category = models.ManyToManyField('jobads.JobCategory')
-    status = models.BooleanField(default=False)
+    status = models.CharField(default='sent' , max_length=255)
     created = models.DateTimeField(auto_now_add=True)
     slug = models.CharField(max_length=250, unique=True)
 
