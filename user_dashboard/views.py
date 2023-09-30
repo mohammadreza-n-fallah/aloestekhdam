@@ -259,8 +259,8 @@ class EditUserProfileViewSet(APIView):
                     if udata == edata:
                         if udata == 'image':
                             user_image = request.data['image']
-                            image_format = user_image[user_image.index('.') + 1::]
-                            if image_format not in image_formats:
+                            image_extension = user_image.name.split('.')[-1].lower()
+                            if image_extension not in image_formats:
                                 return Response({'error': 'file_input_is_invalid'}, status=status.HTTP_403_FORBIDDEN)
                         s_data = UserSerializer(instance=user.first(), data=request.data, partial=True)
                         if s_data.is_valid():
