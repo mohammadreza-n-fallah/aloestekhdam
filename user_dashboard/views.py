@@ -247,14 +247,27 @@ class EditUserProfileViewSet(APIView):
                 'email',
                 'image',
             ]
+            image_formats = [
+                'png',
+                'webp',
+                'jpg',
+                'jpeg',
+            ]
             user_data = list(request.data)
             for udata in user_data:
                 for edata in editable_fields:
                     if udata == edata:
+                        if udata == 'image':
+                            user_image = request.data['image']
+                            image_format = user_image[user_image.index('.') + 1::]
+                            if image_format not in image_formats:
+                                return Response({'error': 'file_input_is_invalid'}, status=status.HTTP_403_FORBIDDEN)
                         s_data = UserSerializer(instance=user.first(), data=request.data, partial=True)
                         if s_data.is_valid():
                             s_data.save()
-                        return Response({'success', 'user_updated'}, status=status.HTTP_200_OK)
+                        else:
+                            return Response({'error': 'input_is_not_valid'}, status=status.HTTP_403_FORBIDDEN)
+                        return Response({'success': 'user_updated'}, status=status.HTTP_200_OK)
             return Response({'error': 'access_denied'}, status=status.HTTP_403_FORBIDDEN)
         return Response({'error': 'user_not_found'}, status=status.HTTP_404_NOT_FOUND)
 

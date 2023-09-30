@@ -28,10 +28,15 @@ class CustomUserManager(BaseUserManager):
         return self.get(phone_number=phone_number)
 
 
+def image_upload_to(instance, filename):
+    return f'users/{instance}/{filename}'
+
+
 class CustomUser(AbstractBaseUser, PermissionsMixin):
     username = models.CharField(max_length=250, unique=True)
     password = models.CharField(max_length=250)
     full_name = models.CharField(max_length=250)
+    image = models.FileField(upload_to=image_upload_to , blank=True)
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
     email = models.EmailField(max_length=100, blank=True)
