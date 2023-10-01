@@ -5,9 +5,6 @@ from custom_users.models import CustomUser
 from django.db.models import Q
 
 
-def cv_upload_to(instance, filename):
-    return f'users/user_cvs/{instance}/{filename}'
-
 
 class JobQuerySet(models.QuerySet):
 
@@ -84,7 +81,7 @@ class JobFacilitie(models.Model):
 
 
 class CV(models.Model):
-    file_name = models.FileField(upload_to=cv_upload_to, blank=True, unique=True)
+    file_name = models.CharField(max_length=250)
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     status = models.CharField(max_length=250, default='sent')
     jobad = models.ForeignKey(Job, on_delete=models.CASCADE, related_name='cv')

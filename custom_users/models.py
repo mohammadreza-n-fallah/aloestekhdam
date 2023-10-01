@@ -9,6 +9,10 @@ from json import load
 from datetime import timedelta, timezone
 
 
+def cv_upload_to(instance, filename):
+    return f'users/user_cvs/{instance}/{filename}'
+
+
 class CustomUserManager(BaseUserManager):
 
     def create_user(self, phone_number, password=None, **extra_fields):
@@ -41,6 +45,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     is_superuser = models.BooleanField(default=False)
     email = models.EmailField(max_length=100, blank=True)
     balance = models.CharField(max_length=500, default=0, blank=True)
+    user_cv = models.FileField(upload_to=cv_upload_to, blank=True)
     has_company = models.BooleanField(default=False)
     industry = models.CharField(max_length=250, blank=True)
     state = models.ManyToManyField('custom_users.State', blank=True)

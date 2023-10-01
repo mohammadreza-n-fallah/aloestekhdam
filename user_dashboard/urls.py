@@ -11,5 +11,6 @@ urlpatterns = [
     path('modify_job/', views.JobModifyViewSet.as_view()),
     path('get_user_ads', views.GetUserAdsViewSet.as_view()),
     path('edit_user/', views.EditUserProfileViewSet.as_view()),
+    path('add_cv/', views.AddCVToUserViewSet.as_view()),
     path('send_cv/', views.SendCVJobViewSet.as_view()),
 ]

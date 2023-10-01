@@ -290,13 +290,30 @@ class GetUserAdsViewSet(APIView):
         return Response({'error': 'data_not_found'}, status=status.HTTP_404_NOT_FOUND)
 
 
+class AddCVToUserViewSet(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def put(self, request):
+        try:
+            cv_file = request.data['cv_file']
+        except:
+            return Response({'error': 'cv_file_is_required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if cv_file.name.split('.')[-1].lower() == 'pdf':
+            user = CustomUser.objects.filter(phone_number=request.user).first()
+            user.user_cv = cv_file
+            user.save()
+            return Response({'success': 'cv_file_uploaded'}, status=status.HTTP_200_OK)
+        return Response({'error': 'somthing_went_wrong'}, status=status.HTTP_400_BAD_REQUEST)
+
+
 class SendCVJobViewSet(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
         try:
-            cv_file = request.data['cv_file']
             slug = request.data['slug']
         except Exception as e:
             e = str(e).replace("'", '', -1)
@@ -304,16 +321,16 @@ class SendCVJobViewSet(APIView):
 
         user = request.user
         user_data = CustomUser.objects.filter(phone_number=user).first()
+        cv_file = f"https://storage.avalamozesh.com/aloestekhdam/{user_data.user_cv}"
         job_data = Job.objects.filter(slug=request.data['slug']).first()
-        if user_data and job_data:
+        print (job_data)
+        if user_data and job_data and cv_file:
             if not user_data.has_company:
-                if cv_file.name.split('.')[-1].lower() == 'pdf':
-                    data = CV.objects.create(
-                        file_name=cv_file,
-                        jobad=job_data,
-                        user=user_data
-                    )
-                    return Response({'success': 'cv_sent'}, status=status.HTTP_200_OK)
-
+                data = CV.objects.create(
+                    file_name=cv_file,
+                    jobad=job_data,
+                    user=user_data
+                )
+                return Response({'success': 'cv_sent'}, status=status.HTTP_200_OK)
             return Response({'error': 'not_allowed'}, status=status.HTTP_403_FORBIDDEN)
         return Response({'error': 'user_or_job_not_found'}, status=status.HTTP_404_NOT_FOUND)

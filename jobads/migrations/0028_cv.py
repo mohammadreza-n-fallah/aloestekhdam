@@ -18,7 +18,7 @@ class Migration(migrations.Migration):
             name='CV',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('file_name', models.FileField(blank=True, unique=True, upload_to=jobads.models.cv_upload_to)),
+                ('file_name', models.CharField(blank=True, unique=True)),
                 ('status', models.CharField(default='sent', max_length=250)),
                 ('jobad', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='jobads.job')),
                 ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
