@@ -323,7 +323,6 @@ class SendCVJobViewSet(APIView):
         user_data = CustomUser.objects.filter(phone_number=user).first()
         cv_file = f"https://storage.avalamozesh.com/aloestekhdam/{user_data.user_cv}"
         job_data = Job.objects.filter(slug=request.data['slug']).first()
-        print (job_data)
         if user_data and job_data and cv_file:
             if not user_data.has_company:
                 data = CV.objects.create(
