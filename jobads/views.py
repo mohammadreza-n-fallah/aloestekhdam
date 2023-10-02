@@ -24,7 +24,6 @@ class JobListViewSet(APIView):
             cv_data = CV.objects.filter(jobad__in=data)
             cv_status_dict = {}
 
-            # Create a dictionary with CV status for each job
             for cv in cv_data:
                 if cv.user == user:
                     cv_status_dict[cv.jobad.id] = {
@@ -34,13 +33,15 @@ class JobListViewSet(APIView):
 
         s_data = JobSerializer(data, many=True).data
 
-        # Assign CV status to each job in s_data
         for job_data in s_data:
             job_id = job_data['id']
-            if job_id in cv_status_dict:
-                job_data['cv_status'] = cv_status_dict[job_id]
-            else:
-                job_data['cv_status'] = {}  # No CV status found for this job
+            try:
+                if job_id in cv_status_dict:
+                    job_data['cv_status'] = cv_status_dict[job_id]
+                else:
+                    job_data['cv_status'] = {}
+            except:
+                pass
 
         return Response(s_data, status=status.HTTP_200_OK)
 class JobRetrieveViewSet(APIView):
