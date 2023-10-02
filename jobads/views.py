@@ -17,7 +17,6 @@ class JobListViewSet(APIView):
     def get(self, request):
         user = request.user
         data = Job.objects.filter().order_by('-created')
-        print(user)
 
         if str(user) != 'AnonymousUser':
             user_data = CustomUser.objects.filter(phone_number=user).first()
@@ -32,7 +31,6 @@ class JobListViewSet(APIView):
                     }
 
         s_data = JobSerializer(data, many=True).data
-
         for job_data in s_data:
             job_id = job_data['id']
             try:
