@@ -8,10 +8,17 @@ from django.db.models import Q
 
 class JobQuerySet(models.QuerySet):
 
-    def search(self, query):
+    def search(self, query, state, category):
+        if state is None:
+            state = ''
         lookup_title = Q(title__icontains=query)
         lookup_description = Q(description__icontains=query)
+        lookup_state = Q(state__icontains=state)
         qs = Job.objects.filter(lookup_title | lookup_description)
+        qs = qs.filter(lookup_state)
+        if category:
+            lookup_category = Q(category__category__icontains=category)
+            qs = qs.filter(lookup_category)
         return qs
 
 
@@ -20,8 +27,8 @@ class JobManager(models.Manager):
     def get_queryset(self):
         return JobQuerySet(self.model, using=self._db)
 
-    def search(self, query):
-        return self.get_queryset().search(query)
+    def search(self, query, state, category):
+        return self.get_queryset().search(query, state, category)
 
 
 class Job(models.Model):

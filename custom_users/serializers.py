@@ -5,7 +5,7 @@ from jobads.models import CV
 
 class UserSerializer(serializers.ModelSerializer):
     sent_cv = serializers.SerializerMethodField()
-
+    state = serializers.StringRelatedField(many=True)
     class Meta:
         model = CustomUser
         exclude = ['user_type']
@@ -14,12 +14,14 @@ class UserSerializer(serializers.ModelSerializer):
         class Meta:
             model = CV
             fields = '__all__'
+
     def get_sent_cv(self, obj):
         data = obj.user_sent_cv.filter()
-        return self.s_data(data , many=True).data
+        return self.s_data(data, many=True).data
 
 
 class CompanySerializer(serializers.ModelSerializer):
+    state = serializers.StringRelatedField(many=True)
     class Meta:
         model = CustomUser
         exclude = [

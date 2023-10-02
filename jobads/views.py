@@ -42,6 +42,8 @@ class JobListViewSet(APIView):
                 pass
 
         return Response(s_data, status=status.HTTP_200_OK)
+
+
 class JobRetrieveViewSet(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [AllowAny]
@@ -69,9 +71,14 @@ class JobRetrieveViewSet(APIView):
 
 class JobSearchViewSet(APIView):
     def get(self, request):
-        user_query = request.GET.get('q')
+        try:
+            user_query = request.GET.get('q')
+        except:
+            user_query = str('s')
+        user_state = request.GET.get('state')
+        user_category = request.GET.get('category')
         if user_query:
-            data = JobManager().search(query=user_query)
+            data = JobManager().search(query=user_query, state=user_state, category=user_category)
             if data:
                 s_data = JobSerializer(data, many=True).data
                 return Response(s_data, status=status.HTTP_200_OK)

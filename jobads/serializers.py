@@ -8,7 +8,6 @@ class JobSerializer(serializers.ModelSerializer):
     owner = serializers.SlugRelatedField('username', read_only=True)
     category = serializers.StringRelatedField(many=True)
     job_skills = serializers.SerializerMethodField()
-    # city = serializers.StringRelatedField(many=True)
     facilitie = serializers.StringRelatedField(many=True)
     company_info = serializers.SerializerMethodField()
     cv = serializers.SerializerMethodField()
