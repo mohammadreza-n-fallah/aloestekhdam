@@ -70,14 +70,37 @@ class JobRetrieveViewSet(APIView):
 
 
 class JobSearchViewSet(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [AllowAny]
     def get(self, request):
+        user = request.user
         user_query = request.GET.get('q')
         if user_query == None:
             user_query = ''
         user_state = request.GET.get('state')
         user_category = request.GET.get('category')
         data = JobManager().search(query=user_query, state=user_state, category=user_category)
+        if str(user) != 'AnonymousUser':
+            user_data = CustomUser.objects.filter(phone_number=user).first()
+            cv_data = CV.objects.filter(jobad__in=data)
+            cv_status_dict = {}
+
+            for cv in cv_data:
+                if cv.user == user:
+                    cv_status_dict[cv.jobad.id] = {
+                        'sended': True,
+                        'status': cv.status
+                    }
         if data:
             s_data = JobSerializer(data, many=True).data
+            for job_data in s_data:
+                job_id = job_data['id']
+                try:
+                    if job_id in cv_status_dict:
+                        job_data['cv_status'] = cv_status_dict[job_id]
+                    else:
+                        job_data['cv_status'] = {}
+                except:
+                    pass
             return Response(s_data, status=status.HTTP_200_OK)
         return Response({'error': 'nothing_found'}, status=status.HTTP_404_NOT_FOUND)

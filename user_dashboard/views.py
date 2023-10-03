@@ -2,6 +2,7 @@ from custom_users.models import CustomUser
 from custom_users.serializers import UserSerializer
 from aloestekhdam.tokens import generate_tokens
 from rest_framework.views import APIView
+from .verify import send_verify_code
 from jobads.models import Job, JobCategory, JobFacilitie, JobSkill, CV
 from jobads.serializers import JobSerializer, CVSerializer, GetCVUserSerializer
 from rest_framework.response import Response
@@ -23,7 +24,7 @@ class SignUpViewSet(APIView):
             user_type = 'causal'
         except KeyError as e:
             e = str(e).replace("'", '', -1)
-            return Response({'error': f'{e} field is require'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': f'{e} field is required'}, status=status.HTTP_400_BAD_REQUEST)
         try:
             data = CustomUser.save_user(username, password, phone_number, user_type, method)
             token = JWTAuthentication.create_jwt(data['info'])
@@ -41,9 +42,11 @@ class LoginViewSet(APIView):
         try:
             phone_number = request.data['phone_number']
             password = request.data['password']
+            verify_code = request.data['password']
         except:
-            return Response({'error': 'phone_number_or_password_is_empty'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': 'phone_number_or_verify_code_is_empty'}, status=status.HTTP_400_BAD_REQUEST)
         data = CustomUser.objects.filter(phone_number=phone_number).first()
+        code = send_verify_code()
         if data != None and check_password(password, data.password):
             tokens = JWTAuthentication.create_jwt(data)
             tokens = {
