@@ -69,8 +69,8 @@ class GetCVUserSerializer(serializers.ModelSerializer):
         return f'{settings.DEFAULT_IMAGE_URL}{data}'
 
     def get_company_name(self, obj):
-        data = str(Job.objects.filter(title=obj.jobad).first().title)
-        return data
+        data = Job.objects.filter(title=obj.jobad).first().owner
+        return CustomUser.objects.filter(phone_number=data).first().company_name
 
     def get_company_slug(self, obj):
         data = str(Job.objects.filter(title=obj.jobad).first().slug)
