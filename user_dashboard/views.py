@@ -3,7 +3,7 @@ from custom_users.serializers import UserSerializer
 from aloestekhdam.tokens import generate_tokens
 from rest_framework.views import APIView
 from jobads.models import Job, JobCategory, JobFacilitie, JobSkill, CV
-from jobads.serializers import JobSerializer
+from jobads.serializers import JobSerializer, CVSerializer, GetCVUserSerializer
 from rest_framework.response import Response
 from aloestekhdam.custom_jwt import JWTAuthentication
 from django.contrib.auth.hashers import check_password
@@ -333,3 +333,17 @@ class SendCVJobViewSet(APIView):
                 return Response({'success': 'cv_sent'}, status=status.HTTP_200_OK)
             return Response({'error': 'not_allowed'}, status=status.HTTP_403_FORBIDDEN)
         return Response({'error': 'user_or_job_not_found'}, status=status.HTTP_404_NOT_FOUND)
+
+
+class GetUserCVsViewSet(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        user_query = CustomUser.objects.filter(phone_number=user).first()
+        cvs = CV.objects.filter(user=user_query)
+        if cvs:
+            s_data = GetCVUserSerializer(cvs, many=True).data
+            return Response(s_data, status=status.HTTP_200_OK)
+        return Response({'error': 'there_is_no_cv_for_this_user'}, status=status.HTTP_404_NOT_FOUND)

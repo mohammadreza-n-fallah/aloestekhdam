@@ -140,7 +140,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Tehran'
 
 USE_I18N = True
 
@@ -189,3 +189,4 @@ AWS_STORAGE_BUCKET_NAME = 'aloestekhdam'
 STATIC_URL = f'https://storage.avalamozesh.com/{AWS_STORAGE_BUCKET_NAME}/static/'
 AWS_S3_ENDPOINT_URL = 'https://storage.avalamozesh.com'
 AWS_QUERYSTRING_AUTH = False
+DEFAULT_IMAGE_URL = f'https://storage.avalamozesh.com/{AWS_STORAGE_BUCKET_NAME}/'

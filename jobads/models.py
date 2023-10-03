@@ -1,7 +1,9 @@
 from django.db import models
 from ckeditor.fields import RichTextField
 from django.db.models.query import QuerySet
+import pytz
 from custom_users.models import CustomUser
+from django.utils import timezone
 from django.db.models import Q
 
 
@@ -19,7 +21,7 @@ class JobQuerySet(models.QuerySet):
         if category:
             lookup_category = Q(category__category__icontains=category)
             qs = qs.filter(lookup_category)
-        return qs
+        return qs.order_by('-created')
 
 
 class JobManager(models.Manager):
@@ -92,6 +94,7 @@ class CV(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='user_sent_cv')
     status = models.CharField(max_length=250, default='sent')
     jobad = models.ForeignKey(Job, on_delete=models.CASCADE, related_name='cv')
+    created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f'{self.user} | {self.jobad} | {self.status}'

@@ -4,7 +4,6 @@ from jobads.models import CV
 
 
 class UserSerializer(serializers.ModelSerializer):
-    sent_cv = serializers.SerializerMethodField()
     state = serializers.StringRelatedField(many=True)
     class Meta:
         model = CustomUser
