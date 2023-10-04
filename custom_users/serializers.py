@@ -20,7 +20,7 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class CompanySerializer(serializers.ModelSerializer):
-    # state = serializers.StringRelatedField(many=True)
+    state = serializers.StringRelatedField()
     class Meta:
         model = CustomUser
         exclude = [
