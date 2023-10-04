@@ -1,4 +1,4 @@
-from custom_users.models import CustomUser
+from custom_users.models import CustomUser, State
 from custom_users.serializers import UserSerializer
 from aloestekhdam.tokens import generate_tokens
 from rest_framework.views import APIView
@@ -29,6 +29,7 @@ class SignUpViewSet(APIView):
             data = CustomUser.save_user(username, password, phone_number, user_type, method)
             token = JWTAuthentication.create_jwt(data['info'])
         except Exception as e:
+            print(e)
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
         if data['errors'] != True:
             s_data = UserSerializer(data['info']).data
@@ -79,7 +80,7 @@ class GetUserDataViewSet(APIView):
 
     def get(self, request):
         user = request.user
-        data = CustomUser.objects.filter(username=user.username).first()
+        data = CustomUser.objects.filter(phone_number=user).first()
         s_data = UserSerializer(data).data
         return Response(s_data)
 
@@ -212,30 +213,61 @@ class AddAndEditUserCompamyViewSet(APIView):
     permission_classes = [IsAuthenticated]
 
     def put(self, request):
-        username = request.user
-        user = CustomUser.objects.filter(username=username).first()
-        if user:
-            user_data = request.data
+        user = request.user
+        user = CustomUser.objects.filter(phone_number=user).first()
+        if user.has_company:
             try:
-                company_name = user_data['company_name']
-                organization_size = user_data['organization_size']
-                type_of_activity = user_data['type_of_activity']
-                established_year = user_data['established_year']
-                ownership = user_data['ownership']
+                full_name = request.data['full_name']
+                company_name = request.data['company_name']
+                organization_side = request.data['organization_side']
+                organization_size = request.data['organization_size']
+                phone_number_2 = request.data['phone_number_2']
+                company_telephone = request.data['company_telephone']
+                type_of_activity = request.data['type_of_activity']
+                established_year = request.data['established_year']
+                brand = request.data['brand']
+                ownership = request.data['ownership']
+                state = request.data['state']
+                industry = request.data['industry']
+                service_and_products = request.data['service_and_products']
+                description_of_company = request.data['description_of_company']
             except KeyError as e:
                 return Response({'error': f'{e}_is_required'}, status=status.HTTP_400_BAD_REQUEST)
-
-            user.has_company = True
+            
             user.company_name = company_name
+            user.full_name = full_name
             user.organization_size = organization_size
             user.type_of_activity = type_of_activity
             user.established_year = established_year
+            user.organization_side = organization_side
+            user.phone_number_2 = phone_number_2
+            user.company_telephone = company_telephone
+            user.brand = brand
+            user.industry = industry
+            user.service_and_products = service_and_products
+            user.description_of_company = description_of_company
             user.ownership = ownership
+
+            state_model = State.objects.filter(city_name=state).first()
+            if state_model != None:
+                user.state = state_model
+            try:
+                user.website = request.data['website']
+            except:
+                pass
+            try:
+                user.company_telephone_2 = request.data['company_telephone_2']
+            except:
+                pass
+            try:
+                user.image = request.data['image']
+            except:
+                pass
             user.save()
 
-            return Response({'success': f'{company_name}_is_created'}, status=status.HTTP_200_OK)
+            return Response({'success': f'user_company_updated'}, status=status.HTTP_200_OK)
 
-        return Response({'error': 'user_not_found'}, status=status.HTTP_401_UNAUTHORIZED)
+        return Response({'error': 'access_denied'}, status=status.HTTP_401_UNAUTHORIZED)
 
 
 class EditUserProfileViewSet(APIView):
@@ -352,3 +384,5 @@ class GetUserCVsViewSet(APIView):
                 return Response(s_data, status=status.HTTP_200_OK)
             return Response({'error': 'there_is_no_cv_for_this_user'}, status=status.HTTP_404_NOT_FOUND)
         return Response({'error': 'access_denied'}, status=status.HTTP_400_BAD_REQUEST)
+
+

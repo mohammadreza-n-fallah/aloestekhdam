@@ -1,10 +1,7 @@
 from django.db import models
 from django.conf import settings
-from rest_framework.authtoken.models import Token
-from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.contrib.auth.hashers import make_password
-# from aloestekhdam.custom_jwt import JWTAuthentication
 from json import load
 from datetime import timedelta, timezone
 
@@ -47,19 +44,24 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     balance = models.CharField(max_length=500, default=0, blank=True)
     user_cv = models.FileField(upload_to=cv_upload_to, blank=True)
     has_company = models.BooleanField(default=False)
-    industry = models.CharField(max_length=250, blank=True)
-    state = models.ManyToManyField('custom_users.State', blank=True)
-    service_and_products = models.CharField(max_length=250, blank=True)
-    description_of_company = models.TextField(blank=True)
-    organization_size = models.CharField(max_length=250, blank=True)
-    company_name = models.CharField(max_length=255, blank=True)
-    type_of_activity = models.CharField(max_length=250, blank=True)
-    established_year = models.CharField(max_length=250, blank=True)
-    brand = models.CharField(max_length=250, blank=True)
-    ownership = models.CharField(max_length=250, blank=True)
+    industry = models.CharField(max_length=250, default='')
+    state = models.ForeignKey('custom_users.State',blank=True,null=True ,on_delete=models.CASCADE)
+    phone_number_2 = models.CharField(max_length=250, default='')
+    website = models.CharField(max_length=250, blank=True)
+    company_telephone = models.CharField(max_length=250, default='')
+    company_telephone_2 = models.CharField(max_length=250, default='')
+    organization_side = models.CharField(max_length=250, default='')
+    service_and_products = models.CharField(max_length=250, default='')
+    description_of_company = models.TextField(default='')
+    organization_size = models.CharField(max_length=250, default='')
+    company_name = models.CharField(max_length=255, default='')
+    type_of_activity = models.CharField(max_length=250, default='')
+    established_year = models.CharField(max_length=250, default='')
+    brand = models.CharField(max_length=250, default='')
+    ownership = models.CharField(max_length=250, default='')
     phone_number = models.CharField(max_length=11, unique=True)
     phone_number_verfiy = models.BooleanField(default=False)
-    user_type = models.CharField(max_length=250)
+    user_type = models.CharField(max_length=250, default='casual')
 
     def save_user(username, password, phone_number, user_type, method):
         errors = dict()

@@ -4,7 +4,7 @@ from jobads.models import CV
 
 
 class UserSerializer(serializers.ModelSerializer):
-    state = serializers.StringRelatedField(many=True)
+    state = serializers.StringRelatedField()
     class Meta:
         model = CustomUser
         exclude = ['user_type']
@@ -20,7 +20,7 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class CompanySerializer(serializers.ModelSerializer):
-    state = serializers.StringRelatedField(many=True)
+    # state = serializers.StringRelatedField(many=True)
     class Meta:
         model = CustomUser
         exclude = [
