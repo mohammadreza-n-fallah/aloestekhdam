@@ -14,4 +14,5 @@ urlpatterns = [
     path('add_cv/', views.AddCVToUserViewSet.as_view()),
     path('send_cv/', views.SendCVJobViewSet.as_view()),
     path('get_cv', views.GetUserCVsViewSet.as_view()),
+    path('check_company', views.IsCompanyInfoCompleteViewSet.as_view()),
 ]

@@ -386,3 +386,36 @@ class GetUserCVsViewSet(APIView):
         return Response({'error': 'access_denied'}, status=status.HTTP_400_BAD_REQUEST)
 
 
+class IsCompanyInfoCompleteViewSet(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        user_data = CustomUser.objects.filter(phone_number=user).first()
+
+        if user_data.has_company:
+            requirement_list = [
+                'company_name',
+                'full_name',
+                'organization_size',
+                'type_of_activity',
+                'established_year',
+                'organization_side',
+                'phone_number_2',
+                'company_telephone',
+                'brand',
+                'industry',
+                'service_and_products',
+                'description_of_company',
+                'ownership'
+            ]
+            
+            missing_fields = [field for field in requirement_list if not getattr(user_data, field)]
+            
+            if not missing_fields:
+                return Response({True}, status=status.HTTP_200_OK)
+            else:
+                return Response({False}, status=status.HTTP_401_UNAUTHORIZED)
+        
+        return Response({False}, status=status.HTTP_401_UNAUTHORIZED)
