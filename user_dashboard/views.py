@@ -233,7 +233,6 @@ class AddAndEditUserCompamyViewSet(APIView):
                 description_of_company = request.data['description_of_company']
             except KeyError as e:
                 return Response({'error': f'{e}_is_required'}, status=status.HTTP_400_BAD_REQUEST)
-            
             user.company_name = company_name
             user.full_name = full_name
             user.organization_size = organization_size
@@ -259,10 +258,11 @@ class AddAndEditUserCompamyViewSet(APIView):
                 user.company_telephone_2 = request.data['company_telephone_2']
             except:
                 pass
-            try:
-                user.image = request.data['image']
-            except:
-                pass
+            if request.data.get('image'):
+                if len(request.data.get('image')) != 0:
+                    user.image = request.data['image']
+                if request.data['image'] == 'remove':
+                    user.image = None
             user.save()
 
             return Response({'success': f'user_company_updated'}, status=status.HTTP_200_OK)
