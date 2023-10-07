@@ -106,11 +106,11 @@ class JobCreateViewSet(APIView):
             'hire_disability',
             'business_trip',
         ]
+        status_facilitie = False
         if user.has_company == True:
             user_data = request.data
             try:
                 title = user_data['title']
-                category_name = user_data['category']
                 work_time = user_data['work_time']
                 state = user_data['state']
                 city = user_data['city']
@@ -123,16 +123,22 @@ class JobCreateViewSet(APIView):
                 e = str(e).replace("'", "", -1)
                 return Response({'error': f'{e}_is_required'}, status=status.HTTP_400_BAD_REQUEST)
 
-            category = JobCategory.objects.filter(category=category_name).first()
-            if category is None:
-                return Response({'error': 'category_not_found'}, status=status.HTTP_404_NOT_FOUND)
+            categorys = request.data.get('category').split(',')
+            category = []
+            if categorys:
+                for category_name in categorys:
+                    category_obj = JobCategory.objects.filter(category=category_name).first()
+                    if category_obj is None:
+                        return Response({'error': 'category_not_found'}, status=status.HTTP_404_NOT_FOUND)
+                    category.append(category_obj)
 
             if request.data.get('facilitie'):
                 facilities = request.data.get('facilitie').split(',')
                 facilitie = []
+                status_facilitie = True
                 if facilities:
                     for facilitie_name in facilities:
-                        facilitie_obj = JobFacilitie.objects.filter(facilitie=facilitie_name).first()
+                        facilitie_obj = JobFacilitie.objects.filter(facilitie_name=facilitie_name).first()
                         print(facilitie_obj)
                         if facilitie_obj is None:
                             return Response({'error': 'facilitie_not_found'}, status=status.HTTP_404_NOT_FOUND)
@@ -162,8 +168,9 @@ class JobCreateViewSet(APIView):
                             level=level,
                             job_post=data
                         )
-            data.category.set([category])
-            data.facilitie.set(facilitie)
+            data.category.set(category)
+            if status_facilitie:
+                data.facilitie.set(facilitie)
 
             for o_field in optional_fields:
                 for u_field in request.data:
@@ -172,6 +179,7 @@ class JobCreateViewSet(APIView):
             data.save()
             return Response({'success': f'{title}_is_created'}, status=status.HTTP_201_CREATED)
         return Response({'error': 'user_has_no_company'}, status=status.HTTP_406_NOT_ACCEPTABLE)
+
 
 
 class JobModifyViewSet(APIView):
