@@ -129,7 +129,7 @@ class JobCreateViewSet(APIView):
                 return Response({'error': 'category_not_found'}, status=status.HTTP_404_NOT_FOUND)
 
             if request.data.get('facilitie'):
-                facilities = loads(request.data.get('facilitie'))
+                facilities = request.data.get('facilitie').split(',')
                 facilitie = []
                 status_facilitie = True
                 if facilities:
