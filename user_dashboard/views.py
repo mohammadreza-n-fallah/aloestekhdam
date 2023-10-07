@@ -9,8 +9,10 @@ from rest_framework.response import Response
 from aloestekhdam.custom_jwt import JWTAuthentication
 from django.contrib.auth.hashers import check_password
 from rest_framework import status
+from json import loads
 from rest_framework.permissions import IsAuthenticated
 from random import randint
+from datetime import datetime
 
 
 class SignUpViewSet(APIView):
@@ -92,70 +94,84 @@ class JobCreateViewSet(APIView):
     def post(self, request):
         phone_number = request.user
         user = CustomUser.objects.filter(phone_number=phone_number).first()
-        if user != None:
-            if user.has_company == True:
-                user_data = request.data
-                try:
-                    title = user_data['title']
-                    description = user_data['description']
-                    work_time = user_data['work_time']
-                    work_days = user_data['work_days']
-                    city = user_data['city']
-                    gender = user_data['gender']
-                    work_experience = user_data['work_experience']
-                    education_group = user_data['education_group']
-                    education_level = user_data['education_level']
-                    business_trip = user_data['business_trip']
-                    max_age = user_data['max_age']
-                    min_age = user_data['min_age']
-                    cooperation = user_data['cooperation']
-                    income_range = user_data['income_range']
-                    location = user_data['location']
-                    owner = user
-                    tags = user_data['tags']
-                    category = JobCategory.objects.filter(category=user_data['category']).first()
-                    state = user.state.all().first()
-                    jobfacilitie = JobFacilitie.objects.filter(facilitie=user_data['jobfacilitie']).first()
-                    job_skill = user_data['job_skill']
-                    job_level = user_data['job_level']
-                    slug = title
-                except Exception as e:
-                    e = str(e).replace("'", "", -1)
-                    return Response({'error': f'{e}_is_required'}, status=status.HTTP_400_BAD_REQUEST)
-                if category != None and jobfacilitie != None:
-                    data = Job.objects.create(
-                        title=title,
-                        description=description,
-                        work_time=work_time,
-                        max_age=max_age,
-                        cooperation=cooperation,
-                        min_age=min_age,
-                        work_days=work_days,
-                        state=state,
-                        gender=gender,
-                        work_experience=work_experience,
-                        education_group=education_group,
-                        education_level=education_level,
-                        business_trip=business_trip,
-                        income_range=income_range,
-                        location=location,
-                        city=city,
-                        owner=owner,
-                        tags=tags,
-                        slug=slug,
-                        status='waiting-confirm',
-                    )
-                    data.category.set([category])
-                    data.facilitie.set([jobfacilitie])
-                    JobSkill.objects.create(
-                        skill=job_skill,
-                        level=job_level,
-                        job_post=data
-                    )
-                    return Response({'sucess': f'{title}_is_created'}, status=status.HTTP_406_NOT_ACCEPTABLE)
-                return Response({'error': 'category_not_found'}, status=status.HTTP_406_NOT_ACCEPTABLE)
-            return Response({'error': 'user_has_no_company'}, status=status.HTTP_406_NOT_ACCEPTABLE)
-        return Response({'error': 'user_not_found'}, status=status.HTTP_401_UNAUTHORIZED)
+        optional_fields = [
+            'telecommuting',
+            'education_group',
+            'education_level',
+            'min_age',
+            'max_age',
+            'gender',
+            'hire_intern',
+            'hire_military_service',
+            'hire_disability',
+            'business_trip',
+        ]
+        if user.has_company == True:
+            user_data = request.data
+            try:
+                title = user_data['title']
+                category_name = user_data['category']
+                work_time = user_data['work_time']
+                state = user_data['state']
+                city = user_data['city']
+                income_range = user_data['income_range']
+                work_experience = user_data['work_experience']
+                work_days = user_data['work_days']
+                description = user_data['description']
+
+            except KeyError as e:
+                e = str(e).replace("'", "", -1)
+                return Response({'error': f'{e}_is_required'}, status=status.HTTP_400_BAD_REQUEST)
+
+            category = JobCategory.objects.filter(category=category_name).first()
+            if category is None:
+                return Response({'error': 'category_not_found'}, status=status.HTTP_404_NOT_FOUND)
+
+            if request.data.get('facilitie'):
+                facilities = request.data.get('facilitie').split(',')
+                facilitie = []
+                if facilities:
+                    for facilitie_name in facilities:
+                        facilitie_obj = JobFacilitie.objects.filter(facilitie=facilitie_name).first()
+                        print(facilitie_obj)
+                        if facilitie_obj is None:
+                            return Response({'error': 'facilitie_not_found'}, status=status.HTTP_404_NOT_FOUND)
+                        facilitie.append(facilitie_obj)
+
+            slug = f"{title.replace(' ', '-', -1)}-{datetime.now().year}-{datetime.now().month}-{datetime.now().day}-{datetime.now().second}"
+            data = Job.objects.create(
+                title=title,
+                work_time=work_time,
+                state=state,
+                city=city,
+                owner=user,
+                income_range=income_range,
+                work_experience=work_experience,
+                work_days=work_days,
+                description=description,
+                status=False,
+                slug=slug,
+            )
+
+            if request.data.get('job_skills'):
+                job_skills = loads(request.data['job_skills'])
+                for json_skills in job_skills:
+                    for skill, level in json_skills.items():
+                        skill_obj = JobSkill.objects.create(
+                            skill=skill,
+                            level=level,
+                            job_post=data
+                        )
+            data.category.set([category])
+            data.facilitie.set(facilitie)
+
+            for o_field in optional_fields:
+                for u_field in request.data:
+                    if u_field == o_field:
+                        setattr(data, u_field, request.data[u_field])
+            data.save()
+            return Response({'success': f'{title}_is_created'}, status=status.HTTP_201_CREATED)
+        return Response({'error': 'user_has_no_company'}, status=status.HTTP_406_NOT_ACCEPTABLE)
 
 
 class JobModifyViewSet(APIView):
@@ -410,12 +426,12 @@ class IsCompanyInfoCompleteViewSet(APIView):
                 'description_of_company',
                 'ownership'
             ]
-            
+
             missing_fields = [field for field in requirement_list if not getattr(user_data, field)]
-            
+
             if not missing_fields:
                 return Response({True}, status=status.HTTP_200_OK)
             else:
                 return Response({False}, status=status.HTTP_401_UNAUTHORIZED)
-        
+
         return Response({False}, status=status.HTTP_401_UNAUTHORIZED)
