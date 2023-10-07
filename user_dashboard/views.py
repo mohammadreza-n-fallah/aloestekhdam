@@ -123,14 +123,10 @@ class JobCreateViewSet(APIView):
                 e = str(e).replace("'", "", -1)
                 return Response({'error': f'{e}_is_required'}, status=status.HTTP_400_BAD_REQUEST)
 
-            categorys = loads(request.data.get('category'))
-            category = []
-            if categorys:
-                for category_name in categorys:
-                    category_obj = JobCategory.objects.filter(category=category_name).first()
-                    if category_obj is None:
-                        return Response({'error': 'category_not_found'}, status=status.HTTP_404_NOT_FOUND)
-                    category.append(category_obj)
+            category = request.data.get('category')
+            category_obj = JobCategory.objects.filter(category=category).first()
+            if category_obj is None:
+                return Response({'error': 'category_not_found'}, status=status.HTTP_404_NOT_FOUND)
 
             if request.data.get('facilitie'):
                 facilities = loads(request.data.get('facilitie'))
@@ -168,7 +164,7 @@ class JobCreateViewSet(APIView):
                             level=level,
                             job_post=data
                         )
-            data.category.set(category)
+            data.category.set(category_obj)
             if status_facilitie:
                 data.facilitie.set(facilitie)
 
