@@ -44,6 +44,7 @@ class Job(models.Model):
     state = models.CharField(max_length=250)
     owner = models.ForeignKey(CustomUser, on_delete=models.CASCADE, blank=True)
     telecommuting = models.BooleanField(default=False)
+    military_order = models.BooleanField(default=False)
     gender = models.CharField(max_length=100)
     min_age = models.CharField(blank=True, null=True, max_length=250)
     max_age = models.CharField(blank=True, null=True, max_length=250)

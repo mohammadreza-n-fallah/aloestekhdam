@@ -96,6 +96,7 @@ class JobCreateViewSet(APIView):
             'telecommuting',
             'education_group',
             'education_level',
+            'military_order',
             'min_age',
             'max_age',
             'gender',
