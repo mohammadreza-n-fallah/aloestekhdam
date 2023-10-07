@@ -164,7 +164,7 @@ class JobCreateViewSet(APIView):
                             level=level,
                             job_post=data
                         )
-            data.category.set(category_obj)
+            data.category.set([category_obj])
             if status_facilitie:
                 data.facilitie.set(facilitie)
 
