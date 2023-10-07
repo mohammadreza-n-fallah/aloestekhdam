@@ -34,7 +34,7 @@ class JobManager(models.Manager):
 
 
 class Job(models.Model):
-    title = models.CharField(max_length=250, unique=True)
+    title = models.CharField(max_length=250)
     description = models.TextField()
     work_time = models.CharField(max_length=250)
     work_days = models.CharField(max_length=250)

@@ -123,7 +123,7 @@ class JobCreateViewSet(APIView):
                 e = str(e).replace("'", "", -1)
                 return Response({'error': f'{e}_is_required'}, status=status.HTTP_400_BAD_REQUEST)
 
-            categorys = request.data.get('category').split(',')
+            categorys = loads(request.data.get('category'))
             category = []
             if categorys:
                 for category_name in categorys:
@@ -133,7 +133,7 @@ class JobCreateViewSet(APIView):
                     category.append(category_obj)
 
             if request.data.get('facilitie'):
-                facilities = request.data.get('facilitie').split(',')
+                facilities = loads(request.data.get('facilitie'))
                 facilitie = []
                 status_facilitie = True
                 if facilities:
