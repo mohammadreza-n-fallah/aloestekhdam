@@ -31,7 +31,6 @@ class SignUpViewSet(APIView):
             data = CustomUser.save_user(username, password, phone_number, user_type, method)
             token = JWTAuthentication.create_jwt(data['info'])
         except Exception as e:
-            print(e)
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
         if data['errors'] != True:
             s_data = UserSerializer(data['info']).data
@@ -70,7 +69,6 @@ class CheckNumberLoginViewSet(APIView):
             return Response({'error': 'phone_number_is_empty'}, status=status.HTTP_400_BAD_REQUEST)
 
         data = CustomUser.objects.filter(phone_number=phone_number).first()
-        print(data)
         if data:
             return Response({'success': 'phone_number_ok'}, status=status.HTTP_200_OK)
         return Response({'error': 'phone_number_not_found'}, status=status.HTTP_404_NOT_FOUND)
@@ -134,8 +132,7 @@ class JobCreateViewSet(APIView):
                 status_facilitie = True
                 if facilities:
                     for facilitie_name in facilities:
-                        facilitie_obj = JobFacilitie.objects.filter(facilitie_name=facilitie_name).first()
-                        print(facilitie_obj)
+                        facilitie_obj = JobFacilitie.objects.filter(facilitie=facilitie_name).first()
                         if facilitie_obj is None:
                             return Response({'error': 'facilitie_not_found'}, status=status.HTTP_404_NOT_FOUND)
                         facilitie.append(facilitie_obj)
