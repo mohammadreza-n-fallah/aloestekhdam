@@ -137,13 +137,15 @@ class JobCreateViewSet(APIView):
                             return Response({'error': 'facilitie_not_found'}, status=status.HTTP_404_NOT_FOUND)
                         facilitie.append(facilitie_obj)
 
-            slug = f"{title.replace(' ', '-', -1)}-{datetime.now().year}-{datetime.now().month}-{datetime.now().day}-{datetime.now().second}"
+            slug = f"{title.replace(' ', '-', -1)}-{datetime.now().year}-{datetime.now().month}-{datetime.now().day}-{datetime.now().microsecond}"
+            print (user.image)
             data = Job.objects.create(
                 title=title,
                 work_time=work_time,
                 state=state,
                 city=city,
                 owner=user,
+                image=user.image,
                 income_range=income_range,
                 work_experience=work_experience,
                 work_days=work_days,
@@ -155,12 +157,14 @@ class JobCreateViewSet(APIView):
             if request.data.get('job_skills'):
                 job_skills = loads(request.data['job_skills'])
                 for json_skills in job_skills:
-                    for skill, level in json_skills.items():
-                        skill_obj = JobSkill.objects.create(
-                            skill=skill,
-                            level=level,
-                            job_post=data
-                        )
+                    skill = json_skills['skill']
+                    level = json_skills['level']
+                    skill_obj = JobSkill.objects.create(
+                        skill=skill,
+                        level=level,
+                        job_post=data
+                    )
+
             data.category.set([category_obj])
             if status_facilitie:
                 data.facilitie.set(facilitie)
@@ -172,7 +176,6 @@ class JobCreateViewSet(APIView):
             data.save()
             return Response({'success': f'{title}_is_created'}, status=status.HTTP_201_CREATED)
         return Response({'error': 'user_has_no_company'}, status=status.HTTP_406_NOT_ACCEPTABLE)
-
 
 
 class JobModifyViewSet(APIView):
