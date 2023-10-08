@@ -91,4 +91,6 @@ class JobStateSerializer(serializers.ModelSerializer):
         fields = ['state', 'related_city']
 
     def get_related_city(self, obj):
-        return [city.city for city in obj.related_city.all()]
+        data = JobCity.objects.filter(related_state=obj)
+        city_names = [city.city for city in data]
+        return city_names

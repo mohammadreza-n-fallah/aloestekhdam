@@ -102,13 +102,13 @@ class CV(models.Model):
 
 class JobCity(models.Model):
     city = models.CharField(max_length=250, unique=True)
+    related_state = models.ForeignKey('jobads.JobState', on_delete=models.CASCADE, null=True, blank=True)
 
     def __str__(self):
         return f'{self.city}'
 
 class JobState(models.Model):
     state = models.CharField(max_length=250, unique=True)
-    related_city = models.ManyToManyField(JobCity)
 
     def __str__(self):
         return f'{self.state}'
