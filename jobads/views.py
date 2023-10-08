@@ -2,12 +2,12 @@ from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from .models import Job, JobCategory, JobManager
+from .models import Job, JobCategory, JobManager, JobState
 from jobads.models import CV
 from aloestekhdam.custom_jwt import JWTAuthentication
 from rest_framework.permissions import AllowAny
 from custom_users.models import CustomUser
-from .serializers import JobSerializer
+from .serializers import JobSerializer, JobStateSerializer
 
 
 class JobListViewSet(APIView):
@@ -72,6 +72,7 @@ class JobRetrieveViewSet(APIView):
 class JobSearchViewSet(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [AllowAny]
+
     def get(self, request):
         user = request.user
         user_query = request.GET.get('q')
@@ -104,3 +105,11 @@ class JobSearchViewSet(APIView):
                     pass
             return Response(s_data, status=status.HTTP_200_OK)
         return Response({'error': 'nothing_found'}, status=status.HTTP_404_NOT_FOUND)
+
+
+class GetStateViewSet(APIView):
+
+    def get(self, request):
+        data = JobState.objects.filter()
+        s_data = JobStateSerializer(instance=data, many=True)
+        return Response(s_data.data)

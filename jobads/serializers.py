@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Job, JobCategory, JobSkill, CV
+from .models import Job, JobCategory, JobSkill, CV, JobCity, JobState
 from django.conf import settings
 from custom_users.serializers import CompanySerializer
 from custom_users.models import CustomUser
@@ -62,7 +62,7 @@ class GetCVUserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CV
-        fields = ['jobad', 'status', 'company_name', 'company_slug' ,'company_image', 'created']
+        fields = ['jobad', 'status', 'company_name', 'company_slug', 'company_image', 'created']
 
     def get_company_image(self, obj):
         data = str(Job.objects.filter(title=obj.jobad).first().image)
@@ -75,3 +75,18 @@ class GetCVUserSerializer(serializers.ModelSerializer):
     def get_company_slug(self, obj):
         data = str(Job.objects.filter(title=obj.jobad).first().slug)
         return data
+
+
+class JobCitySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = JobCity
+        fields = ['city']
+
+
+class JobStateSerializer(serializers.ModelSerializer):
+    related_city = JobCitySerializer(many=True)
+
+    class Meta:
+        model = JobState
+        fields = ['state', 'related_city']
+

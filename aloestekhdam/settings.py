@@ -13,10 +13,8 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 from pathlib import Path
 from datetime import timedelta
 
-
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
@@ -29,7 +27,6 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -40,10 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-
-
-
-    #My apps
+    # My apps
     'corsheaders',
     'drf_yasg',
     'jobads',
@@ -67,7 +61,8 @@ MIDDLEWARE = [
 ]
 CORS_ORIGIN_ALLOW_ALL = False
 
-CSRF_TRUSTED_ORIGINS = ['https://*.45.144.126.224', "https://45.144.126.224" , 'http://94.139.163.188' , 'http://94.139.163.188:5000']
+CSRF_TRUSTED_ORIGINS = ['https://*.45.144.126.224', "https://45.144.126.224", 'http://94.139.163.188',
+                        'http://94.139.163.188:5000']
 
 CORS_ALLOW_ALL_ORIGINS = False
 
@@ -134,7 +129,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/4.1/topics/i18n/
 
@@ -146,12 +140,10 @@ USE_I18N = True
 
 USE_TZ = True
 
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
 STATIC_URL = 'static/'
-
 
 STATIC_ROOT = 'static'
 # Default primary key field type
@@ -159,12 +151,8 @@ STATIC_ROOT = 'static'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-
-
 CKEDITOR_BASEPATH = "/static/ckeditor/ckeditor/"
 CKEDITOR_UPLOAD_PATH = "uploads/"
-
-
 
 # REST_FRAMEWORK = {
 #     'DEFAULT_AUTHENTICATION_CLASSES': [
@@ -179,7 +167,7 @@ JWT_CONF = {
 
 AUTH_USER_MODEL = 'custom_users.CustomUser'
 
-CSRF_TRUSTED_ORIGINS=['https://*.aloestekhdam.com' , 'http://localhost:5000' , 'http://45.144.126.224:9000']
+CSRF_TRUSTED_ORIGINS = ['https://*.aloestekhdam.com', 'http://localhost:5000', 'http://45.144.126.224:9000']
 
 STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 DEFAULT_FILE_STORAGE = 'aloestekhdam.custom_s3.CustomS3Boto3Storage'

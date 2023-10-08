@@ -7,7 +7,6 @@ from django.utils import timezone
 from django.db.models import Q
 
 
-
 class JobQuerySet(models.QuerySet):
 
     def search(self, query, state, category):
@@ -99,3 +98,17 @@ class CV(models.Model):
 
     def __str__(self):
         return f'{self.user} | {self.jobad} | {self.status}'
+
+
+class JobCity(models.Model):
+    city = models.CharField(max_length=250, unique=True)
+
+    def __str__(self):
+        return f'{self.city}'
+
+class JobState(models.Model):
+    state = models.CharField(max_length=250, unique=True)
+    related_city = models.ManyToManyField(JobCity)
+
+    def __str__(self):
+        return f'{self.state}'
