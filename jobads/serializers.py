@@ -84,9 +84,11 @@ class JobCitySerializer(serializers.ModelSerializer):
 
 
 class JobStateSerializer(serializers.ModelSerializer):
-    related_city = JobCitySerializer(many=True)
+    related_city = serializers.SerializerMethodField()
 
     class Meta:
         model = JobState
         fields = ['state', 'related_city']
 
+    def get_related_city(self, obj):
+        return [city.city for city in obj.related_city.all()]
