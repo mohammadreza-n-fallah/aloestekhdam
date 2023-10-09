@@ -384,7 +384,8 @@ class SendCVJobViewSet(APIView):
                 data = CV.objects.create(
                     file_name=cv_file,
                     jobad=job_data,
-                    user=user_data
+                    user=user_data,
+                    owner=job_data.owner
                 )
                 return Response({'success': 'cv_sent'}, status=status.HTTP_200_OK)
             return Response({'error': 'not_allowed'}, status=status.HTTP_403_FORBIDDEN)
@@ -448,6 +449,7 @@ class GetCompanyCVViewSet(APIView):
 
     def get(self, request):
         user_data = CustomUser.objects.filter(phone_number=request.user).first()
+        print (user_data)
         if user_data.has_company:
             user_cv = CV.objects.filter(user=user_data)
             s_user_cv = CVSerializer(user_cv, many=True).data
