@@ -110,6 +110,12 @@ class JobSearchViewSet(APIView):
 class GetStateViewSet(APIView):
 
     def get(self, request):
-        data = JobState.objects.filter()
-        s_data = JobStateSerializer(instance=data, many=True)
-        return Response(s_data.data)
+        try:
+            state = request.GET.get('name')
+        except:
+            return Response({'error': 'name_is_required'}, status=status.HTTP_400_BAD_REQUEST)
+        data = JobState.objects.filter(state=state)
+        if data:
+            s_data = JobStateSerializer(instance=data, many=True).data
+            return Response(s_data, status=status.HTTP_200_OK)
+        return Response({'error': 'state_name_not_found'}, status=status.HTTP_404_NOT_FOUND)
