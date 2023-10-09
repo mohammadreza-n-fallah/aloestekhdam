@@ -457,11 +457,11 @@ class GetCompanyCVViewSet(APIView):
             method = 'sent'
 
             if method == 'sent':
-                user_cv = CV.objects.filter(owner=user_data,status='sent')
+                user_cv = CV.objects.filter(owner=user_data,status='sent').order_by('-id')
             elif method == 'confirmed':
-                user_cv = CV.objects.filter(owner=user_data,status='confirmed')
+                user_cv = CV.objects.filter(owner=user_data,status='confirmed').order_by('-id')
             elif method == 'failed':
-                user_cv = CV.objects.filter(owner=user_data,status='failed')
+                user_cv = CV.objects.filter(owner=user_data,status='failed').order_by('-id')
             else:
                 return Response({'error': {'accepted_methods':['sent','confirmed','failed']}}, status=status.HTTP_400_BAD_REQUEST)
             
