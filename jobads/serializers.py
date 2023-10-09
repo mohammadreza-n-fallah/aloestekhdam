@@ -94,3 +94,11 @@ class JobStateSerializer(serializers.ModelSerializer):
         data = JobCity.objects.filter(related_state=obj)
         city_names = [city.city for city in data]
         return city_names
+
+
+
+class JobSingleStateSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = JobState
+        fields = ['state']

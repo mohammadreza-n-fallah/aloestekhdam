@@ -7,7 +7,7 @@ from jobads.models import CV
 from aloestekhdam.custom_jwt import JWTAuthentication
 from rest_framework.permissions import AllowAny
 from custom_users.models import CustomUser
-from .serializers import JobSerializer, JobStateSerializer
+from .serializers import JobSerializer, JobStateSerializer, JobSingleStateSerializer
 
 
 class JobListViewSet(APIView):
@@ -110,12 +110,16 @@ class JobSearchViewSet(APIView):
 class GetStateViewSet(APIView):
 
     def get(self, request):
-        try:
-            state = request.GET.get('name')
-        except:
-            return Response({'error': 'name_is_required'}, status=status.HTTP_400_BAD_REQUEST)
+        state = request.GET.get('name')
+        if not state:
+            data = JobState.objects.filter()
+            s_data = JobSingleStateSerializer(data, many=True).data
+            return Response(s_data, status=status.HTTP_200_OK)
         data = JobState.objects.filter(state=state)
         if data:
             s_data = JobStateSerializer(instance=data, many=True).data
             return Response(s_data, status=status.HTTP_200_OK)
         return Response({'error': 'state_name_not_found'}, status=status.HTTP_404_NOT_FOUND)
+
+
+
