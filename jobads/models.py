@@ -93,7 +93,7 @@ class CV(models.Model):
     file_name = models.CharField(max_length=250)
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='user_sent_cv')
     owner = models.ForeignKey(CustomUser, on_delete=models.CASCADE, blank=True, null=True)
-    status = models.CharField(max_length=250, default='unseen')
+    status = models.CharField(max_length=250, default='sent')
     jobad = models.ForeignKey(Job, on_delete=models.CASCADE, related_name='cv')
     created = models.DateTimeField(auto_now_add=True)
 
