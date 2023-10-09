@@ -453,9 +453,8 @@ class GetCompanyCVViewSet(APIView):
         user_data = CustomUser.objects.filter(phone_number=request.user).first()
         if user_data.has_company:
             method = request.GET.get('method')
-        if not method:
-            method = 'sent'
-
+            if not method:
+                method = 'sent'
             if method == 'sent':
                 user_cv = CV.objects.filter(owner=user_data,status='sent').order_by('-id')
             elif method == 'confirmed':
@@ -464,7 +463,7 @@ class GetCompanyCVViewSet(APIView):
                 user_cv = CV.objects.filter(owner=user_data,status='failed').order_by('-id')
             else:
                 return Response({'error': {'accepted_methods':['sent','confirmed','failed']}}, status=status.HTTP_400_BAD_REQUEST)
-            
+                
             s_user_cv = CVSerializer(user_cv, many=True).data
             return Response(s_user_cv, status=status.HTTP_200_OK)
         return Response({'error': 'access_denied'}, status=status.HTTP_401_UNAUTHORIZED)
