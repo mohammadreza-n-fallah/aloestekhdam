@@ -88,7 +88,7 @@ class JobStateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = JobState
-        fields = ['state', 'related_city']
+        fields = ['related_city']
 
     def get_related_city(self, obj):
         data = JobCity.objects.filter(related_state=obj)
@@ -96,9 +96,16 @@ class JobStateSerializer(serializers.ModelSerializer):
         return city_names
 
 
+class JobSingleStateListSerializer(serializers.ListSerializer):
+    def to_representation(self, data):
+        return [[item] for item in data] 
+
+class JobSingleStringListField(serializers.ListField):
+    child = serializers.CharField()
 
 class JobSingleStateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = JobState
         fields = ['state']
+    state = JobSingleStringListField()

@@ -111,15 +111,23 @@ class GetStateViewSet(APIView):
 
     def get(self, request):
         state = request.GET.get('name')
+        
         if not state:
-            data = JobState.objects.filter()
-            s_data = JobSingleStateSerializer(data, many=True).data
-            return Response(s_data, status=status.HTTP_200_OK)
+            data = JobState.objects.filter().values_list('state', flat=True)
+            return Response(data, status=status.HTTP_200_OK)
+        
         data = JobState.objects.filter(state=state)
+
         if data:
-            s_data = JobStateSerializer(instance=data, many=True).data
+            s_data = JobStateSerializer(instance=data, many=True).data[0]['related_city']
             return Response(s_data, status=status.HTTP_200_OK)
+
         return Response({'error': 'state_name_not_found'}, status=status.HTTP_404_NOT_FOUND)
+
+
+
+
+
 
 
 
