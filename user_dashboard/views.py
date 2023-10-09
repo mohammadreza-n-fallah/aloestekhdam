@@ -451,7 +451,7 @@ class GetCompanyCVViewSet(APIView):
         user_data = CustomUser.objects.filter(phone_number=request.user).first()
         print (user_data)
         if user_data.has_company:
-            user_cv = CV.objects.filter(user=user_data)
+            user_cv = CV.objects.filter(owner=user_data)
             s_user_cv = CVSerializer(user_cv, many=True).data
             return Response(s_user_cv, status=status.HTTP_200_OK)
         return Response({'error': 'access_denied'}, status=status.HTTP_401_UNAUTHORIZED)
@@ -476,8 +476,9 @@ class EditCompanyCVViewSet(APIView):
                 e = str(e).replace("'" , '' , -1)
                 return Response({'error': f'{e}_is_required'}, status=status.HTTP_400_BAD_REQUEST)
             if cv_status in editable_status:
-                user_cv = CV.objects.filter(user=user_data,id=id).first()
-                user_cv.status = cv_status
-                user_cv.save()
-                return Response({'success': 'cv_edited'}, status=status.HTTP_200_OK)
+                user_cv = CV.objects.filter(owner=user_data,id=id).first()
+                if user_cv:
+                    user_cv.status = cv_status
+                    user_cv.save()
+                    return Response({'success': 'cv_edited'}, status=status.HTTP_200_OK)
         return Response({'error': 'access_denied'}, status=status.HTTP_401_UNAUTHORIZED)
