@@ -92,6 +92,8 @@ class JobFacilitie(models.Model):
 class CV(models.Model):
     file_name = models.CharField(max_length=250)
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='user_sent_cv')
+    first_name = models.CharField(max_length=250, default='')
+    job_slug = models.CharField(max_length=250, default='')
     owner = models.ForeignKey(CustomUser, on_delete=models.CASCADE, blank=True, null=True)
     status = models.CharField(max_length=250, default='sent')
     jobad = models.ForeignKey(Job, on_delete=models.CASCADE, related_name='cv')

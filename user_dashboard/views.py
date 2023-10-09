@@ -384,6 +384,8 @@ class SendCVJobViewSet(APIView):
                 data = CV.objects.create(
                     file_name=cv_file,
                     jobad=job_data,
+                    first_name=user_data.full_name,
+                    job_slug=job_data.slug,
                     user=user_data,
                     owner=job_data.owner
                 )
