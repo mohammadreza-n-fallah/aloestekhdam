@@ -440,3 +440,42 @@ class IsCompanyInfoCompleteViewSet(APIView):
                 return Response({False}, status=status.HTTP_401_UNAUTHORIZED)
 
         return Response({False}, status=status.HTTP_401_UNAUTHORIZED)
+
+
+class GetCompanyCVViewSet(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user_data = CustomUser.objects.filter(phone_number=request.user).first()
+        if user_data.has_company:
+            user_cv = CV.objects.filter(user=user_data)
+            s_user_cv = CVSerializer(user_cv, many=True).data
+            return Response(s_user_cv, status=status.HTTP_200_OK)
+        return Response({'error': 'access_denied'}, status=status.HTTP_401_UNAUTHORIZED)
+    
+
+class EditCompanyCVViewSet(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def put(self, request):
+        user_data = CustomUser.objects.filter(phone_number=request.user).first()
+        editable_status = [
+            'reviewed',
+            'failed'
+        ]
+
+        if user_data.has_company:
+            try:
+                id = request.data['id']
+                cv_status = request.data['cv_status']
+            except Exception as e:
+                e = str(e).replace("'" , '' , -1)
+                return Response({'error': f'{e}_is_required'}, status=status.HTTP_400_BAD_REQUEST)
+            if cv_status in editable_status:
+                user_cv = CV.objects.filter(user=user_data,id=id).first()
+                user_cv.status = cv_status
+                user_cv.save()
+                return Response({'success': 'cv_edited'}, status=status.HTTP_200_OK)
+        return Response({'error': 'access_denied'}, status=status.HTTP_401_UNAUTHORIZED)
