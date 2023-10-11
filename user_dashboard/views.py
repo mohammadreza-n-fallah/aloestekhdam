@@ -545,20 +545,6 @@ class GetCompanyAdsViewSet(APIView):
 
     def get(self, request):
         user = request.user
-        method = request.GET.get('method')
-        if not method:
-            method = 'all'
-        
-        if method == 'sent':
-            job_data = Job.objects.filter(owner=user, status=False, rejected_info='')
-        elif method == 'confirmed':
-            job_data = Job.objects.filter(owner=user, status=True)
-        elif method == 'all':
-            job_data = Job.objects.filter(owner=user)
-        elif method == 'failed':
-            job_data = Job.objects.filter(owner=user, status=False)
-            job_data = job_data.annotate(rejected_info_length=Length('rejected_info')).filter(rejected_info_length__gt=1)
-        else:
-            return Response({'error':{'allowed_methods':['sent','confirmed','failed']}}, status=status.HTTP_200_OK)
+        job_data = Job.objects.filter(owner=user)
         s_job_data = JobSerializer(job_data, many=True).data
         return Response(s_job_data, status=status.HTTP_200_OK)
