@@ -6,7 +6,7 @@ from rest_framework.views import APIView
 from django.db.models.functions import Length
 from .verify import send_verify_code
 from jobads.models import Job, JobCategory, JobFacilitie, JobSkill, CV
-from jobads.serializers import JobSerializer, CVSerializer, GetCVUserSerializer
+from jobads.serializers import JobSerializer, CVSerializer, GetCVUserSerializer, JobLessSerializer
 from rest_framework.response import Response
 from aloestekhdam.custom_jwt import JWTAuthentication
 from django.contrib.auth.hashers import check_password
@@ -262,6 +262,7 @@ class JobModifyViewSet(APIView):
                     job_data.work_experience = work_experience
                     job_data.work_days = work_days
                     job_data.description = description
+                    job_data.status = False
                     for o_field in optional_fields:
                         for u_field in user_data:
                             if u_field == o_field:
@@ -424,7 +425,7 @@ class SendCVJobViewSet(APIView):
         user = request.user
         user_data = CustomUser.objects.filter(phone_number=user).first()
         cv_file = f"{settings.DEFAULT_IMAGE_URL}{user_data.user_cv}"
-        job_data = Job.objects.filter(slug=request.data['slug']).first()
+        job_data = Job.objects.filter(slug=request.data['slug'],status=True).first()
         if user_data and job_data and cv_file:
             if not user_data.has_company:
                 data = CV.objects.create(
@@ -547,6 +548,19 @@ class GetCompanyAdsViewSet(APIView):
 
     def get(self, request):
         user = request.user
-        job_data = Job.objects.filter(owner=user)
-        s_job_data = JobSerializer(job_data, many=True).data
+        job_data = Job.objects.filter(owner=user).order_by('-created')
+        s_job_data = JobLessSerializer(job_data, many=True).data
         return Response(s_job_data, status=status.HTTP_200_OK)
+    
+class CompanyAdDemoViewSet(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, slug):
+        user = request.user
+        if slug == '':
+            return Response({'error': 'slug_is_empty'}, status=status.HTTP_400_BAD_REQUEST)
+
+        data = Job.objects.filter(owner=user, slug=slug).order_by('-created').first()
+        s_data = JobSerializer(data).data
+        return Response(s_data, status=status.HTTP_200_OK)

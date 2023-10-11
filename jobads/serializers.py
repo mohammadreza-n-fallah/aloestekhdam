@@ -32,6 +32,11 @@ class JobSerializer(serializers.ModelSerializer):
         data = obj.skill.filter()
         return JobSkillSerializer(data, many=True).data
 
+class JobLessSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = Job
+        fields = ['id','title','state','city','slug','created']
 
 class JobCategorySerializer(serializers.ModelSerializer):
     class Meta:

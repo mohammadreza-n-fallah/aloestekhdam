@@ -17,4 +17,5 @@ urlpatterns = [
     path('get_company_cv', views.GetCompanyCVViewSet.as_view()),
     path('edit_company_cv/', views.EditCompanyCVViewSet.as_view()),
     path('get_company_ads', views.GetCompanyAdsViewSet.as_view()),
+    path('company_ad_demo/<str:slug>', views.CompanyAdDemoViewSet.as_view()),
 ]
