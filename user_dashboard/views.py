@@ -281,11 +281,13 @@ class JobModifyViewSet(APIView):
     def delete(self, request):
         user = request.user
         user_data = request.data
-        user_job_slug = user_data['job_slug']
+        user_job_slug = request.data.get('slug')
         if user_job_slug:
-            data = Job.objects.filter(owner=user, slug=user_job_slug).delete()
-            return Response({'success': f'{user_job_slug}_is_deleted'}, status=status.HTTP_200_OK)
-
+            data = Job.objects.filter(owner=user, slug=user_job_slug)
+            if data:
+                data.delete()
+                return Response({'success': f'{user_job_slug}_is_deleted'}, status=status.HTTP_200_OK)
+            return Response({'error': 'job_not_found'}, status=status.HTTP_404_NOT_FOUND)
         return Response({'error': 'job_slug_is_empty'}, status=status.HTTP_400_BAD_REQUEST)
 
 

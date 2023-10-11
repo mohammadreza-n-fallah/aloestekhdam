@@ -7,4 +7,5 @@ urlpatterns = [
     path ('get/<str:slug>' , views.JobRetrieveViewSet.as_view()),
     path ('search' , views.JobSearchViewSet.as_view()),
     path ('states' , views.GetStateViewSet.as_view()),
+    path ('related_jobs' , views.GetRelatedJobsViewSet.as_view()),
 ]

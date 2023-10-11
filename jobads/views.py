@@ -16,7 +16,7 @@ class JobListViewSet(APIView):
 
     def get(self, request):
         user = request.user
-        data = Job.objects.filter().order_by('-created')
+        data = Job.objects.filter(status=True).order_by('-created')
 
         if str(user) != 'AnonymousUser':
             user_data = CustomUser.objects.filter(phone_number=user).first()
@@ -50,7 +50,7 @@ class JobRetrieveViewSet(APIView):
 
     def get(self, request, slug):
         user = request.user
-        data = Job.objects.filter(slug=slug).first()
+        data = Job.objects.filter(status=True, slug=slug).first()
         if str(user) != 'AnonymousUser':
             user_data = CustomUser.objects.filter(phone_number=user).first()
             cv_data = CV.objects.filter(jobad=data)
@@ -123,3 +123,16 @@ class GetStateViewSet(APIView):
             return Response(s_data, status=status.HTTP_200_OK)
 
         return Response({'error': 'state_name_not_found'}, status=status.HTTP_404_NOT_FOUND)
+    
+
+
+class GetRelatedJobsViewSet(APIView):
+
+    def get(self, request):
+        category = JobCategory.objects.filter(category=request.GET.get('category')).first()
+        title = str(request.GET.get('title')).split()
+        data = Job.objects.filter(status=True, category=category)
+        for item in title:
+            data = data.filter(title__contains=item)
+        s_data = JobSerializer(data, many=True).data
+        return Response(s_data, status=status.HTTP_200_OK)

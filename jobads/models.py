@@ -15,7 +15,8 @@ class JobQuerySet(models.QuerySet):
         lookup_title = Q(title__icontains=query)
         lookup_description = Q(description__icontains=query)
         lookup_state = Q(state__icontains=state)
-        qs = Job.objects.filter(lookup_title | lookup_description)
+        qs = Job.objects.filter(status=True)
+        qs = qs.filter(lookup_title | lookup_description)
         qs = qs.filter(lookup_state)
         if category:
             lookup_category = Q(category__category__icontains=category)
