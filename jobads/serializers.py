@@ -38,6 +38,27 @@ class JobLessSerializer(serializers.ModelSerializer):
         model = Job
         fields = ['id','title','state', 'status' , 'rejected_info' ,'city','slug','created']
 
+class JobDemoSerializer(serializers.ModelSerializer):
+    job_skills = serializers.SerializerMethodField()
+    facilitie = serializers.StringRelatedField(many=True)
+    category = serializers.StringRelatedField(many=True)
+    
+    class Meta:
+        model = Job
+        exclude = ('id',)
+
+
+    def get_company_info(self, obj):
+        owner = obj.owner
+        custom_user = CustomUser.objects.filter(phone_number=owner).first()
+        if custom_user:
+            return CompanySerializer(custom_user).data
+        return {}
+
+    def get_job_skills(self, obj):
+        data = obj.skill.filter()
+        return JobSkillSerializer(data, many=True).data
+
 class JobCategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = JobCategory

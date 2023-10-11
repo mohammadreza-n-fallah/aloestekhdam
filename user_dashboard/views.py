@@ -6,7 +6,7 @@ from rest_framework.views import APIView
 from django.db.models.functions import Length
 from .verify import send_verify_code
 from jobads.models import Job, JobCategory, JobFacilitie, JobSkill, CV
-from jobads.serializers import JobSerializer, CVSerializer, GetCVUserSerializer, JobLessSerializer
+from jobads.serializers import JobSerializer, CVSerializer, GetCVUserSerializer, JobLessSerializer, JobDemoSerializer
 from rest_framework.response import Response
 from aloestekhdam.custom_jwt import JWTAuthentication
 from django.contrib.auth.hashers import check_password
@@ -562,5 +562,5 @@ class CompanyAdDemoViewSet(APIView):
             return Response({'error': 'slug_is_empty'}, status=status.HTTP_400_BAD_REQUEST)
 
         data = Job.objects.filter(owner=user, slug=slug).order_by('-created').first()
-        s_data = JobSerializer(data).data
+        s_data = JobDemoSerializer(data).data
         return Response(s_data, status=status.HTTP_200_OK)
