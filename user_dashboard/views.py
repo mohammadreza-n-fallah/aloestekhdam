@@ -536,7 +536,7 @@ class EditCompanyCVViewSet(APIView):
         return Response({'error': 'access_denied'}, status=status.HTTP_401_UNAUTHORIZED)
     
 
-class GetCompanyAddsViewSet(APIView):
+class GetCompanyAdsViewSet(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
