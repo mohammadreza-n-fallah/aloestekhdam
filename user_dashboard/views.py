@@ -240,8 +240,8 @@ class JobModifyViewSet(APIView):
                 if job_data:
                     if request.data.get('job_skills'):
                         job_skills = loads(request.data['job_skills'])
-                        print (job_skills)
                         for json_skills in job_skills:
+                            print (json_skills)
                             skill = json_skills['skill']
                             level = json_skills['level']
                             skill_obj = JobSkill.objects.update_or_create(
@@ -249,7 +249,10 @@ class JobModifyViewSet(APIView):
                                 level=level,
                                 job_post=job_data
                             )
-
+                    else:
+                        skill_obj = JobSkill.objects.filter(job_post=job_data)
+                        for skill in skill_obj:
+                            skill.delete()
 
                     job_data.title = title
                     job_data.work_time = work_time
@@ -546,7 +549,6 @@ class GetCompanyAdsViewSet(APIView):
         if not method:
             method = 'all'
         
-        print (method)
         if method == 'sent':
             job_data = Job.objects.filter(owner=user, status=False, rejected_info='')
         elif method == 'confirmed':
@@ -555,7 +557,7 @@ class GetCompanyAdsViewSet(APIView):
             job_data = Job.objects.filter(owner=user)
         elif method == 'failed':
             job_data = Job.objects.filter(owner=user, status=False)
-            job_data = job_data.annotate(rejected_info_length=Length('rejected_info')).filter(rejected_info_length__gt=2)
+            job_data = job_data.annotate(rejected_info_length=Length('rejected_info')).filter(rejected_info_length__gt=1)
         else:
             return Response({'error':{'allowed_methods':['sent','confirmed','failed']}}, status=status.HTTP_200_OK)
         s_job_data = JobSerializer(job_data, many=True).data
