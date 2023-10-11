@@ -542,10 +542,11 @@ class GetCompanyAddsViewSet(APIView):
 
     def get(self, request):
         user = request.user
-        method = request.data.get('method')
+        method = request.GET.get('method')
         if not method:
             method = 'all'
         
+        print (method)
         if method == 'sent':
             job_data = Job.objects.filter(owner=user, status=False, rejected_info='')
         elif method == 'confirmed':
