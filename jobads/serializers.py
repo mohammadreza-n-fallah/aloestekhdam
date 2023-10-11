@@ -45,7 +45,7 @@ class JobDemoSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Job
-        exclude = ('id',)
+        exclude = ('id','status','rejected_info','slug','owner',)
 
 
     def get_company_info(self, obj):
