@@ -36,7 +36,7 @@ class JobLessSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Job
-        fields = ['id','title','state','city','slug','created']
+        fields = ['id','title','state', 'status' , 'rejected_info' ,'city','slug','created']
 
 class JobCategorySerializer(serializers.ModelSerializer):
     class Meta:
