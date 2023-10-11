@@ -58,6 +58,7 @@ class Job(models.Model):
     business_trip = models.CharField(max_length=100)
     category = models.ManyToManyField('jobads.JobCategory')
     status = models.BooleanField(default=False)
+    rejected_info = models.CharField(default='',blank=True , max_length=250)
     created = models.DateTimeField(auto_now_add=True)
     slug = models.CharField(max_length=250, unique=True)
 

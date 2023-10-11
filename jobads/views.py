@@ -123,11 +123,3 @@ class GetStateViewSet(APIView):
             return Response(s_data, status=status.HTTP_200_OK)
 
         return Response({'error': 'state_name_not_found'}, status=status.HTTP_404_NOT_FOUND)
-
-
-
-
-
-
-
-

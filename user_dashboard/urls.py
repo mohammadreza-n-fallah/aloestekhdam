@@ -9,7 +9,6 @@ urlpatterns = [
     path('create_job/', views.JobCreateViewSet.as_view()),
     path('modify_company/', views.AddAndEditUserCompamyViewSet.as_view()),
     path('modify_job/', views.JobModifyViewSet.as_view()),
-    path('get_user_ads', views.GetUserAdsViewSet.as_view()),
     path('edit_user/', views.EditUserProfileViewSet.as_view()),
     path('add_cv/', views.AddCVToUserViewSet.as_view()),
     path('send_cv/', views.SendCVJobViewSet.as_view()),
@@ -17,4 +16,5 @@ urlpatterns = [
     path('check_company', views.IsCompanyInfoCompleteViewSet.as_view()),
     path('get_company_cv', views.GetCompanyCVViewSet.as_view()),
     path('edit_company_cv/', views.EditCompanyCVViewSet.as_view()),
+    path('get_company_ads', views.GetCompanyAddsViewSet.as_view()),
 ]

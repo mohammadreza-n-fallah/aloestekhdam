@@ -3,6 +3,7 @@ from custom_users.serializers import UserSerializer
 from aloestekhdam.tokens import generate_tokens
 from django.conf import settings
 from rest_framework.views import APIView
+from django.db.models.functions import Length
 from .verify import send_verify_code
 from jobads.models import Job, JobCategory, JobFacilitie, JobSkill, CV
 from jobads.serializers import JobSerializer, CVSerializer, GetCVUserSerializer
@@ -185,46 +186,101 @@ class JobModifyViewSet(APIView):
     permission_classes = [IsAuthenticated]
 
     def put(self, request):
-        username = request.user
+        user = CustomUser.objects.filter(phone_number=request.user).first()
         user_data = request.data
-        user_job_slug = user_data['job_slug']
+        optional_fields = [
+            'telecommuting',
+            'education_group',
+            'education_level',
+            'military_order',
+            'min_age',
+            'max_age',
+            'gender',
+            'hire_intern',
+            'hire_military_service',
+            'hire_disability',
+            'business_trip',
+        ]
+        status_facilitie = False
+
         try:
             title = user_data['title']
-            description = user_data['description']
             work_time = user_data['work_time']
+            state = user_data['state']
+            city = user_data['city']
             income_range = user_data['income_range']
-            location = user_data['location']
-            tags = user_data['tags']
-            category = JobCategory.objects.filter(category=user_data['category']).first()
+            work_experience = user_data['work_experience']
+            work_days = user_data['work_days']
+            description = user_data['description']
             slug = user_data['slug']
         except KeyError as e:
             return Response({'error': f'{e}_is_required'}, status=status.HTTP_400_BAD_REQUEST)
 
-        if user_job_slug:
-            owner = CustomUser.objects.filter(username=username).first()
-            user_job = Job.objects.filter(owner=owner, slug=user_job_slug)
-            user_job.update(
-                title=title,
-                description=description,
-                work_time=work_time,
-                income_range=income_range,
-                location=location,
-                owner=owner,
-                tags=tags,
-                slug=slug,
-            )
-            if category:
-                user_job.first().category.set([category])
-            return Response({'success': f'{title}_has_been_updated'}, status=status.HTTP_200_OK)
+        if slug:
+            if user.has_company:
+                category = request.data.get('category')
+                category_obj = JobCategory.objects.filter(category=category).first()
+                if category_obj is None:
+                    return Response({'error': 'category_not_found'}, status=status.HTTP_404_NOT_FOUND)
 
+                if user_data.get('facilitie'):
+                    facilities = user_data.get('facilitie').split(',')
+                    facilitie = []
+                    status_facilitie = True
+                    if facilities:
+                        for facilitie_name in facilities:
+                            facilitie_obj = JobFacilitie.objects.filter(facilitie=facilitie_name).first()
+                            if facilitie_obj is None:
+                                return Response({'error': 'facilitie_not_found'}, status=status.HTTP_404_NOT_FOUND)
+                            facilitie.append(facilitie_obj)
+
+                job_data = Job.objects.filter(owner=user, slug=slug).first()
+                
+
+                if job_data:
+                    if request.data.get('job_skills'):
+                        job_skills = loads(request.data['job_skills'])
+                        print (job_skills)
+                        for json_skills in job_skills:
+                            skill = json_skills['skill']
+                            level = json_skills['level']
+                            skill_obj = JobSkill.objects.update_or_create(
+                                skill=skill,
+                                level=level,
+                                job_post=job_data
+                            )
+
+
+                    job_data.title = title
+                    job_data.work_time = work_time
+                    job_data.state = state
+                    job_data.city = city
+                    job_data.income_range = income_range
+                    job_data.work_experience = work_experience
+                    job_data.work_days = work_days
+                    job_data.description = description
+                    for o_field in optional_fields:
+                        for u_field in user_data:
+                            if u_field == o_field:
+                                setattr(job_data, u_field, request.data[u_field])
+
+                    job_data.category.set([category_obj])
+                    if status_facilitie:
+                        job_data.facilitie.set(facilitie)
+                    job_data.save()
+
+
+                    return Response({'success': f'{title}_has_been_updated'}, status=status.HTTP_200_OK)
+                return Response({'error': 'job_not_found'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'error': 'access_denied'}, status=status.HTTP_401_UNAUTHORIZED)
         return Response({'error': 'job_slug_is_empty'}, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request):
-        username = request.user
+        user = request.user
         user_data = request.data
         user_job_slug = user_data['job_slug']
         if user_job_slug:
-            data = Job.objects.filter(owner__username=username, slug=user_job_slug).delete()
+            data = Job.objects.filter(owner=user, slug=user_job_slug).delete()
             return Response({'success': f'{user_job_slug}_is_deleted'}, status=status.HTTP_200_OK)
 
         return Response({'error': 'job_slug_is_empty'}, status=status.HTTP_400_BAD_REQUEST)
@@ -329,22 +385,6 @@ class EditUserProfileViewSet(APIView):
         return Response({'error': 'user_not_found'}, status=status.HTTP_404_NOT_FOUND)
 
 
-class GetUserAdsViewSet(APIView):
-    authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        username = request.user
-        query = request.GET.get('status')
-        user = CustomUser.objects.filter(username=username).first()
-        if query == 'all':
-            data = Job.objects.filter(owner=user)
-        else:
-            data = Job.objects.filter(owner=user, status=query)
-        if data != None:
-            s_data = JobSerializer(data, many=True).data
-            return Response(s_data, status=status.HTTP_200_OK)
-        return Response({'error': 'data_not_found'}, status=status.HTTP_404_NOT_FOUND)
 
 
 class AddCVToUserViewSet(APIView):
@@ -401,9 +441,8 @@ class GetUserCVsViewSet(APIView):
 
     def get(self, request):
         user = request.user
-        user_query = CustomUser.objects.filter(phone_number=user).first()
-        if not user_query.has_company:
-            cvs = CV.objects.filter(user=user_query)
+        if not user.has_company:
+            cvs = CV.objects.filter(user=user)
             if cvs:
                 s_data = GetCVUserSerializer(cvs, many=True).data
                 return Response(s_data, status=status.HTTP_200_OK)
@@ -451,7 +490,7 @@ class GetCompanyCVViewSet(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        user_data = CustomUser.objects.filter(phone_number=request.user).first()
+        user_data = request.user
         if user_data.has_company:
             method = request.GET.get('method')
             if not method:
@@ -495,3 +534,28 @@ class EditCompanyCVViewSet(APIView):
                     user_cv.save()
                     return Response({'success': 'cv_edited'}, status=status.HTTP_200_OK)
         return Response({'error': 'access_denied'}, status=status.HTTP_401_UNAUTHORIZED)
+    
+
+class GetCompanyAddsViewSet(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        method = request.data.get('method')
+        if not method:
+            method = 'all'
+        
+        if method == 'sent':
+            job_data = Job.objects.filter(owner=user, status=False, rejected_info='')
+        elif method == 'confirmed':
+            job_data = Job.objects.filter(owner=user, status=True)
+        elif method == 'all':
+            job_data = Job.objects.filter(owner=user)
+        elif method == 'failed':
+            job_data = Job.objects.filter(owner=user, status=False)
+            job_data = job_data.annotate(rejected_info_length=Length('rejected_info')).filter(rejected_info_length__gt=2)
+        else:
+            return Response({'error':{'allowed_methods':['sent','confirmed','failed']}}, status=status.HTTP_200_OK)
+        s_job_data = JobSerializer(job_data, many=True).data
+        return Response(s_job_data, status=status.HTTP_200_OK)
