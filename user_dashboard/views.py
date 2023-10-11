@@ -1,6 +1,7 @@
 from custom_users.models import CustomUser, State
 from custom_users.serializers import UserSerializer
 from aloestekhdam.tokens import generate_tokens
+from django.conf import settings
 from rest_framework.views import APIView
 from .verify import send_verify_code
 from jobads.models import Job, JobCategory, JobFacilitie, JobSkill, CV
@@ -377,7 +378,7 @@ class SendCVJobViewSet(APIView):
 
         user = request.user
         user_data = CustomUser.objects.filter(phone_number=user).first()
-        cv_file = f"https://storage.avalamozesh.com/aloestekhdam/{user_data.user_cv}"
+        cv_file = f"{settings.DEFAULT_IMAGE_URL}{user_data.user_cv}"
         job_data = Job.objects.filter(slug=request.data['slug']).first()
         if user_data and job_data and cv_file:
             if not user_data.has_company:
@@ -476,7 +477,7 @@ class EditCompanyCVViewSet(APIView):
     def put(self, request):
         user_data = CustomUser.objects.filter(phone_number=request.user).first()
         editable_status = [
-            'reviewed',
+            'confirmed',
             'failed'
         ]
 
