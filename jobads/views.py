@@ -130,7 +130,11 @@ class GetRelatedJobsViewSet(APIView):
 
     def get(self, request):
         category = JobCategory.objects.filter(category=request.GET.get('category')).first()
-        title = str(request.GET.get('title')).split()
+        request_title = request.GET.get('title')
+        if not request_title and not category:
+            return Response({'error': {'required_params': ['category', 'title']}})
+        title = str(request_title).split()
+
         data = Job.objects.filter(status=True, category=category)
         for item in title:
             data = data.filter(title__contains=item)
