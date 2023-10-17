@@ -1,13 +1,11 @@
-from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from .models import Job, JobCategory, JobManager, JobState
-from jobads.models import CV
+from .models import Job, JobCategory, JobManager, JobState, JobIncome, JobTime
 from aloestekhdam.custom_jwt import JWTAuthentication
 from rest_framework.permissions import AllowAny
-from custom_users.models import CustomUser
-from .serializers import JobSerializer, JobStateSerializer, JobSingleStateSerializer
+from .serializers import JobSerializer, JobStateSerializer, JobIncomeSerializer, JobTimeSerializer
+from .usercv import CheckCv
 
 
 class JobListViewSet(APIView):
@@ -19,29 +17,11 @@ class JobListViewSet(APIView):
         data = Job.objects.filter(status=True).order_by('-created')
 
         if str(user) != 'AnonymousUser':
-            user_data = CustomUser.objects.filter(phone_number=user).first()
-            cv_data = CV.objects.filter(jobad__in=data)
-            cv_status_dict = {}
+            result = CheckCv(user, data)
+        else:
+            result = JobSerializer(data, many=True).data
 
-            for cv in cv_data:
-                if cv.user == user:
-                    cv_status_dict[cv.jobad.id] = {
-                        'sended': True,
-                        'status': cv.status
-                    }
-
-        s_data = JobSerializer(data, many=True).data
-        for job_data in s_data:
-            job_id = job_data['id']
-            try:
-                if job_id in cv_status_dict:
-                    job_data['cv_status'] = cv_status_dict[job_id]
-                else:
-                    job_data['cv_status'] = {}
-            except:
-                pass
-
-        return Response(s_data, status=status.HTTP_200_OK)
+        return Response(result, status=status.HTTP_200_OK)
 
 
 class JobRetrieveViewSet(APIView):
@@ -50,23 +30,16 @@ class JobRetrieveViewSet(APIView):
 
     def get(self, request, slug):
         user = request.user
-        data = Job.objects.filter(status=True, slug=slug).first()
-        if str(user) != 'AnonymousUser':
-            user_data = CustomUser.objects.filter(phone_number=user).first()
-            cv_data = CV.objects.filter(jobad=data)
-            cv_status = {}
-            for cv in cv_data:
-                if cv.user == user:
-                    cv_status['sended'] = True
-                    cv_status['status'] = cv.status
-        if data != None:
-            s_data = JobSerializer(data).data
-            try:
-                s_data['cv_status'] = cv_status
-            except:
-                pass
-            return Response(s_data, status=status.HTTP_200_OK)
-        return Response({'error': 'page_not_found'}, status=status.HTTP_404_NOT_FOUND)
+        data = Job.objects.filter(status=True, slug=slug)
+        if data:
+            if str(user) != 'AnonymousUser':
+                result = CheckCv(user, data)
+            else:
+                data = data.first()
+                result = JobSerializer(data).data
+            return Response(result, status=status.HTTP_200_OK)
+        return Response({'error': 'job_not_found'}, status=status.HTTP_404_NOT_FOUND)
+
 
 
 class JobSearchViewSet(APIView):
@@ -81,33 +54,18 @@ class JobSearchViewSet(APIView):
         user_state = request.GET.get('state')
         user_category = request.GET.get('category')
         data = JobManager().search(query=user_query, state=user_state, category=user_category)
-        if str(user) != 'AnonymousUser':
-            user_data = CustomUser.objects.filter(phone_number=user).first()
-            cv_data = CV.objects.filter(jobad__in=data)
-            cv_status_dict = {}
 
-            for cv in cv_data:
-                if cv.user == user:
-                    cv_status_dict[cv.jobad.id] = {
-                        'sended': True,
-                        'status': cv.status
-                    }
         if data:
-            s_data = JobSerializer(data, many=True).data
-            for job_data in s_data:
-                job_id = job_data['id']
-                try:
-                    if job_id in cv_status_dict:
-                        job_data['cv_status'] = cv_status_dict[job_id]
-                    else:
-                        job_data['cv_status'] = {}
-                except:
-                    pass
-            return Response(s_data, status=status.HTTP_200_OK)
+            if str(user) != 'AnonymousUser':
+                result = CheckCv(user, data)
+            else:
+                result = JobSerializer(data, many=True).data
+            return Response(result, status=status.HTTP_200_OK)
         return Response({'error': 'nothing_found'}, status=status.HTTP_404_NOT_FOUND)
 
 
 class GetStateViewSet(APIView):
+    
 
     def get(self, request):
         state = request.GET.get('name')
@@ -127,16 +85,57 @@ class GetStateViewSet(APIView):
 
 
 class GetRelatedJobsViewSet(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [AllowAny]
 
     def get(self, request):
+        user = request.user
         category = JobCategory.objects.filter(category=request.GET.get('category')).first()
-        request_title = request.GET.get('title')
-        if not request_title and not category:
-            return Response({'error': {'required_params': ['category', 'title']}})
-        title = str(request_title).split()
-
+        slug = request.GET.get('slug')
+        print(slug)
+        if category is None and not slug:
+            return Response({'error': {'required_params': ['category', 'slug']}})
+        
         data = Job.objects.filter(status=True, category=category)
-        for item in title:
-            data = data.filter(title__contains=item)
-        s_data = JobSerializer(data, many=True).data
+
+        if str(user) != 'AnonymousUser':
+            result = CheckCv(user, data)
+        else:
+            result = JobSerializer(data, many=True).data
+
+        result = [job_data for job_data in result if job_data['slug'] != slug]
+
+        return Response(result, status=status.HTTP_200_OK)
+
+
+
+class GetJobIncomeViewSet(APIView):
+
+    def get(self, request):
+        data = JobIncome.objects.filter()
+        s_data = JobIncomeSerializer(data, many=True).data
         return Response(s_data, status=status.HTTP_200_OK)
+    
+
+
+class GetJobTimeViewSet(APIView):
+
+    def get(self, request):
+        data = JobTime.objects.filter()
+        s_data = JobTimeSerializer(data, many=True).data
+        return Response(s_data, status=status.HTTP_200_OK)
+    
+
+
+class GetLatestJobsViewSet(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        user = request.user
+        data = Job.objects.filter().order_by('-created')
+        if str(user) != 'AnonymousUser':
+            result = CheckCv(user, data)[:5:]
+        else:
+            result = JobSerializer(data, many=True).data[:5:]
+        return Response(result, status=status.HTTP_200_OK)

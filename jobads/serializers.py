@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Job, JobCategory, JobSkill, CV, JobCity, JobState
+from .models import Job, JobCategory, JobSkill, CV, JobCity, JobState, JobTime, JobIncome
 from django.conf import settings
 from custom_users.serializers import CompanySerializer
 from custom_users.models import CustomUser
@@ -31,6 +31,11 @@ class JobSerializer(serializers.ModelSerializer):
     def get_job_skills(self, obj):
         data = obj.skill.filter()
         return JobSkillSerializer(data, many=True).data
+    
+    def to_representation(self, instance):
+        data = super(JobSerializer, self).to_representation(instance)
+        data['category'] = data['category'][0]
+        return data
 
 class JobLessSerializer(serializers.ModelSerializer):
     
@@ -137,3 +142,25 @@ class JobSingleStateSerializer(serializers.ModelSerializer):
         model = JobState
         fields = ['state']
     state = JobSingleStringListField()
+
+
+class JobIncomeSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = JobIncome
+        fields = ['income']
+
+    def to_representation(self, instance):
+        data = super(JobIncomeSerializer, self).to_representation(instance)
+        return data['income']
+
+
+class JobTimeSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = JobTime
+        fields = ['time']
+
+    def to_representation(self, instance):
+        data = super(JobTimeSerializer, self).to_representation(instance)
+        return data['time']

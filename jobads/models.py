@@ -117,3 +117,20 @@ class JobState(models.Model):
 
     def __str__(self):
         return f'{self.state}'
+    
+
+
+class JobIncome(models.Model):
+    income = models.CharField(max_length=255, unique=True)
+    job_ad = models.ForeignKey(Job, blank=True, null=True, on_delete=models.CASCADE)
+
+    def __str__(self) -> str:
+        return self.income
+    
+
+class JobTime(models.Model):
+    time = models.CharField(max_length=255, unique=True)
+    job_ad = models.ForeignKey(Job, blank=True, null=True, on_delete=models.CASCADE)
+
+    def __str__(self) -> str:
+        return self.time

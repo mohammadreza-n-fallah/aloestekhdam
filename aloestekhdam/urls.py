@@ -36,7 +36,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('blog/', include('blog.urls')),
     path('user_dashboard/', include('user_dashboard.urls')),
-    path('jobs/', include('jobads.urls')),
+    path('jobs/', include('jobads.urls')),  # Ensure 'jobs' comes after 'user_dashboard'
     path('swagger', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path('redoc', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
 ]
