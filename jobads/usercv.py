@@ -4,7 +4,7 @@ from .serializers import JobSerializer
 
 
 
-def CheckCv(user, data):
+def CheckCv(user, data,):
     cv_data = CV.objects.filter(jobad__in=data)
     cv_status_dict = {}
 
@@ -25,5 +25,6 @@ def CheckCv(user, data):
         except:
             pass
     if len(s_data) == 1:
+        print ('ok')
         return s_data[0]
     return s_data

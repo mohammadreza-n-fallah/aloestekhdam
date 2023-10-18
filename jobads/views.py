@@ -95,16 +95,16 @@ class GetRelatedJobsViewSet(APIView):
         if category is None and not slug:
             return Response({'error': {'required_params': ['category', 'slug']}})
         
-        data = Job.objects.filter(status=True, category=category, slug=slug)
+        data = Job.objects.filter(status=True, category=category).exclude(slug=slug)
 
-        if str(user) != 'AnonymousUser':
-            result = CheckCv(user, data)
-        else:
-            result = JobSerializer(data, many=True).data
+        if data:
+            if str(user) != 'AnonymousUser':
+                result = CheckCv(user, data)
+            else:
+                result = JobSerializer(data, many=True).data
 
-        result = [job_data for job_data in result if job_data['slug'] != slug]
-
-        return Response(result, status=status.HTTP_200_OK)
+            return Response(result, status=status.HTTP_200_OK)
+        return Response({'error': 'related_job_not_found'}, status=status.HTTP_404_NOT_FOUND)
 
 
 
