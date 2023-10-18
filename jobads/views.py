@@ -92,11 +92,10 @@ class GetRelatedJobsViewSet(APIView):
         user = request.user
         category = JobCategory.objects.filter(category=request.GET.get('category')).first()
         slug = request.GET.get('slug')
-        print(slug)
         if category is None and not slug:
             return Response({'error': {'required_params': ['category', 'slug']}})
         
-        data = Job.objects.filter(status=True, category=category)
+        data = Job.objects.filter(status=True, category=category, slug=slug)
 
         if str(user) != 'AnonymousUser':
             result = CheckCv(user, data)
