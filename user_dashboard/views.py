@@ -5,6 +5,7 @@ from django.conf import settings
 from rest_framework.views import APIView
 from django.db.models.functions import Length
 from .verify import send_verify_code
+from .createslug import ConvertSlug
 from jobads.models import Job, JobCategory, JobFacilitie, JobSkill, CV
 from jobads.serializers import JobSerializer, CVSerializer, GetCVUserSerializer, JobLessSerializer, JobDemoSerializer
 from rest_framework.response import Response
@@ -140,8 +141,7 @@ class JobCreateViewSet(APIView):
                             return Response({'error': 'facilitie_not_found'}, status=status.HTTP_404_NOT_FOUND)
                         facilitie.append(facilitie_obj)
 
-            slug = f"{title.replace(' ', '-', -1)}-{datetime.now().year}-{datetime.now().month}-{datetime.now().day}-{datetime.now().microsecond}"
-            print (user.image)
+            slug = ConvertSlug(title)
             data = Job.objects.create(
                 title=title,
                 work_time=work_time,
@@ -242,7 +242,6 @@ class JobModifyViewSet(APIView):
                     if request.data.get('job_skills'):
                         job_skills = loads(request.data['job_skills'])
                         for json_skills in job_skills:
-                            print (json_skills)
                             skill = json_skills['skill']
                             level = json_skills['level']
                             skill_obj = JobSkill.objects.update_or_create(
