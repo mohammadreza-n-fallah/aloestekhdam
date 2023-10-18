@@ -236,7 +236,7 @@ class JobModifyViewSet(APIView):
 
                 job_data = Job.objects.filter(owner=user, slug=slug).first()
                 
-                slug = f"{title.replace(' ', '-', -1)}-{datetime.now().year}-{datetime.now().month}-{datetime.now().day}-{datetime.now().microsecond}"
+                slug = ConvertSlug(title)
 
                 if job_data:
                     if request.data.get('job_skills'):

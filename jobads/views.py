@@ -98,6 +98,11 @@ class GetRelatedJobsViewSet(APIView):
         data = Job.objects.filter(status=True, category=category).exclude(slug=slug)
 
         if data:
+            if len(data) < 5:
+                pass
+            else:
+                data = data[:5:]
+                
             if str(user) != 'AnonymousUser':
                 result = CheckCv(user, data)
             else:
@@ -132,9 +137,9 @@ class GetLatestJobsViewSet(APIView):
 
     def get(self, request):
         user = request.user
-        data = Job.objects.filter().order_by('-created')
+        data = Job.objects.filter().order_by('-created')[:5:]
         if str(user) != 'AnonymousUser':
-            result = CheckCv(user, data)[:5:]
+            result = CheckCv(user, data)
         else:
-            result = JobSerializer(data, many=True).data[:5:]
+            result = JobSerializer(data, many=True).data
         return Response(result, status=status.HTTP_200_OK)
