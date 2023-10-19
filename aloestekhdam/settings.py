@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-8&+faukjthx)0hysvx7__ct%8%02k$eyf3v0ew7^%!_d439e47
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 # Application definition
 
@@ -73,6 +73,7 @@ CORS_ALLOWED_ORIGINS = [
     'http://45.144.126.224',
     'http://94.139.163.188:5000',
     'http://94.139.163.188',
+    'http://192.168.0.179:5000',
 ]
 
 ALLOWED_HOSTS = ['*']
@@ -161,8 +162,8 @@ CKEDITOR_UPLOAD_PATH = "uploads/"
 # }
 
 JWT_CONF = {
-    'ACCESS_TOKEN_LIFETIME_HOURS': 5,
-    'REFRESH_TOKEN_LIFETIME_DAYS': 30,
+    'ACCESS_TOKEN_LIFETIME_HOURS': 2,
+    'REFRESH_TOKEN_LIFETIME_DAYS': 5,
 }
 
 AUTH_USER_MODEL = 'custom_users.CustomUser'

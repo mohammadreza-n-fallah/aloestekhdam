@@ -137,9 +137,9 @@ class GetLatestJobsViewSet(APIView):
 
     def get(self, request):
         user = request.user
-        data = Job.objects.filter().order_by('-created')[:5:]
+        data = Job.objects.filter(status=True).order_by('-created')
         if str(user) != 'AnonymousUser':
-            result = CheckCv(user, data)
+            result = CheckCv(user, data)[:5:]
         else:
-            result = JobSerializer(data, many=True).data
+            result = JobSerializer(data, many=True).data[:5:]
         return Response(result, status=status.HTTP_200_OK)
