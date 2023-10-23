@@ -9,13 +9,17 @@ from django.db.models import Q
 
 class JobQuerySet(models.QuerySet):
 
-    def search(self, query, state, category):
+    def search(self, query, state, category, income_range, work_time):
         if state is None:
             state = ''
         lookup_title = Q(title__icontains=query)
         lookup_description = Q(description__icontains=query)
         lookup_state = Q(state__icontains=state)
+        lookup_income_range = Q(income_range__icontains=income_range)
+        lookup_work_time = Q(work_time__icontains=work_time)
         qs = Job.objects.filter(status=True)
+        qs = qs.filter(lookup_income_range)
+        qs = qs.filter(lookup_work_time)
         qs = qs.filter(lookup_title | lookup_description)
         qs = qs.filter(lookup_state)
         if category:
@@ -29,8 +33,8 @@ class JobManager(models.Manager):
     def get_queryset(self):
         return JobQuerySet(self.model, using=self._db)
 
-    def search(self, query, state, category):
-        return self.get_queryset().search(query, state, category)
+    def search(self, query, state, category, income_range, work_time):
+        return self.get_queryset().search(query, state, category, income_range, work_time)
 
 
 class Job(models.Model):
@@ -62,6 +66,9 @@ class Job(models.Model):
     rejected_info = models.CharField(default='',blank=True , max_length=250)
     created = models.DateTimeField(auto_now_add=True)
     slug = models.CharField(max_length=250, unique=True)
+
+    def owner_image(self):
+        return self.owner.image.url if self.owner.image else None
 
     def __str__(self):
         return self.title

@@ -24,7 +24,4 @@ def CheckCv(user, data,):
                 job_data['cv_status'] = {}
         except:
             pass
-    if len(s_data) == 1:
-        print ('ok')
-        return s_data[0]
     return s_data

@@ -160,7 +160,7 @@ CKEDITOR_UPLOAD_PATH = "uploads/"
 #         'rest_framework_simplejwt.authentication.JWTAuthentication',
 #     ]
 # }
-
+#0.009
 JWT_CONF = {
     'ACCESS_TOKEN_LIFETIME_HOURS': 2,
     'REFRESH_TOKEN_LIFETIME_DAYS': 5,

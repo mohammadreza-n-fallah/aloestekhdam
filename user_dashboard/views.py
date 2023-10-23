@@ -60,6 +60,15 @@ class LoginViewSet(APIView):
             }
             return Response(tokens, status=status.HTTP_200_OK)
         return Response({'error': 'phone_number_or_password_is_invalid'}, status=status.HTTP_401_UNAUTHORIZED)
+    
+
+
+class CheckLoginViewSet(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        return Response(status=status.HTTP_200_OK)
 
 
 class CheckNumberLoginViewSet(APIView):
@@ -449,7 +458,7 @@ class GetUserCVsViewSet(APIView):
     def get(self, request):
         user = request.user
         if not user.has_company:
-            cvs = CV.objects.filter(user=user)
+            cvs = CV.objects.filter(user=user).order_by('-id')
             if cvs:
                 s_data = GetCVUserSerializer(cvs, many=True).data
                 return Response(s_data, status=status.HTTP_200_OK)
