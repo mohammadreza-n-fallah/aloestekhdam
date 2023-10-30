@@ -158,6 +158,7 @@ class GetRelatedJobsViewSet(APIView):
                         'city': item['city'],
                         'slug': item['slug'],
                         'image': item['image'],
+                        'created': item['created'],
                         'cv_status': item.get('cv_status', None)
                     }
                     for item in result
@@ -208,6 +209,7 @@ class GetLatestJobsViewSet(APIView):
                         'city': item['city'],
                         'slug': item['slug'],
                         'image': item['image'],
+                        'created': item['created'],
                         'cv_status': item.get('cv_status', None)
                     }
                     for item in result
