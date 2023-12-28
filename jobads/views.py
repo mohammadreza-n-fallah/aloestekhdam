@@ -4,8 +4,16 @@ from rest_framework import status
 from .models import Job, JobCategory, JobManager, JobState, JobIncome, JobTime
 from aloestekhdam.custom_jwt import JWTAuthentication
 from rest_framework.permissions import AllowAny
-from .serializers import JobSerializer, JobStateSerializer, JobIncomeSerializer, JobTimeSerializer
+from .serializers import JobSerializer, JobStateSerializer, JobIncomeSerializer, JobTimeSerializer, \
+    JobCategorySerializer
 from .usercv import CheckCv
+
+
+class CategoryApiView(APIView):
+    def get(self, request):
+        instance = JobCategory.objects.filter()
+        serializer = JobCategorySerializer(instance=instance, many=True)
+        return Response({'data': serializer.data})
 
 
 class JobListViewSet(APIView):
@@ -20,21 +28,21 @@ class JobListViewSet(APIView):
             result = CheckCv(user, data)
         else:
             result = JobSerializer(data, many=True).data
-        
+
         result = [
-        {
-            'id': item['id'],
-            'title': item['title'],
-            'income_range': item['income_range'],
-            'company_name': item['company_info']['company_name'],
-            'work_time': item['work_time'],
-            'state': item['state'],
-            'city': item['city'],
-            'slug': item['slug'],
-            'image': item['image'],
-            'cv_status': item.get('cv_status', None)
-        }
-        for item in result
+            {
+                'id': item['id'],
+                'title': item['title'],
+                'income_range': item['income_range'],
+                'company_name': item['company_info']['company_name'],
+                'work_time': item['work_time'],
+                'state': item['state'],
+                'city': item['city'],
+                'slug': item['slug'],
+                'image': item['image'],
+                'cv_status': item.get('cv_status', None)
+            }
+            for item in result
         ]
 
         return Response(result, status=status.HTTP_200_OK)
@@ -57,7 +65,6 @@ class JobRetrieveViewSet(APIView):
         return Response({'error': 'job_not_found'}, status=status.HTTP_404_NOT_FOUND)
 
 
-
 class JobSearchViewSet(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [AllowAny]
@@ -72,12 +79,12 @@ class JobSearchViewSet(APIView):
         user_income_range = request.GET.get('income_range', '')
         user_work_time = request.GET.get('work_time', '')
         data = JobManager().search(
-            query=user_query, 
-            state=user_state, 
-            category=user_category, 
-            income_range=user_income_range, 
+            query=user_query,
+            state=user_state,
+            category=user_category,
+            income_range=user_income_range,
             work_time=user_work_time
-            )
+        )
 
         if data:
             if str(user) != 'AnonymousUser':
@@ -85,34 +92,33 @@ class JobSearchViewSet(APIView):
             else:
                 result = JobSerializer(data, many=True).data
             result = [
-                    {
-                        'id': item['id'],
-                        'title': item['title'],
-                        'income_range': item['income_range'],
-                        'company_name': item['company_info']['company_name'],
-                        'work_time': item['work_time'],
-                        'state': item['state'],
-                        'city': item['city'],
-                        'slug': item['slug'],
-                        'image': item['image'],
-                        'cv_status': item.get('cv_status', None)
-                    }
-                    for item in result
-                ]
+                {
+                    'id': item['id'],
+                    'title': item['title'],
+                    'income_range': item['income_range'],
+                    'company_name': item['company_info']['company_name'],
+                    'work_time': item['work_time'],
+                    'state': item['state'],
+                    'city': item['city'],
+                    'slug': item['slug'],
+                    'image': item['image'],
+                    'cv_status': item.get('cv_status', None)
+                }
+                for item in result
+            ]
             return Response(result, status=status.HTTP_200_OK)
         return Response({'error': 'nothing_found'}, status=status.HTTP_404_NOT_FOUND)
 
 
 class GetStateViewSet(APIView):
-    
 
     def get(self, request):
         state = request.GET.get('name')
-        
+
         if not state:
             data = JobState.objects.filter().values_list('state', flat=True)
             return Response(data, status=status.HTTP_200_OK)
-        
+
         data = JobState.objects.filter(state=state)
 
         if data:
@@ -120,7 +126,6 @@ class GetStateViewSet(APIView):
             return Response(s_data, status=status.HTTP_200_OK)
 
         return Response({'error': 'state_name_not_found'}, status=status.HTTP_404_NOT_FOUND)
-    
 
 
 class GetRelatedJobsViewSet(APIView):
@@ -133,7 +138,7 @@ class GetRelatedJobsViewSet(APIView):
         slug = request.GET.get('slug')
         if category is None and not slug:
             return Response({'error': {'required_params': ['category', 'slug']}})
-        
+
         data = Job.objects.filter(status=True, category=category).exclude(slug=slug)
 
         if data:
@@ -141,31 +146,30 @@ class GetRelatedJobsViewSet(APIView):
                 pass
             else:
                 data = data[:5:]
-                
+
             if str(user) != 'AnonymousUser':
                 result = CheckCv(user, data)
             else:
                 result = JobSerializer(data, many=True).data
 
             result = [
-                    {
-                        'id': item['id'],
-                        'title': item['title'],
-                        'income_range': item['income_range'],
-                        'company_name': item['company_info']['company_name'],
-                        'work_time': item['work_time'],
-                        'state': item['state'],
-                        'city': item['city'],
-                        'slug': item['slug'],
-                        'image': item['image'],
-                        'created': item['created'],
-                        'cv_status': item.get('cv_status', None)
-                    }
-                    for item in result
-                ]
+                {
+                    'id': item['id'],
+                    'title': item['title'],
+                    'income_range': item['income_range'],
+                    'company_name': item['company_info']['company_name'],
+                    'work_time': item['work_time'],
+                    'state': item['state'],
+                    'city': item['city'],
+                    'slug': item['slug'],
+                    'image': item['image'],
+                    'created': item['created'],
+                    'cv_status': item.get('cv_status', None)
+                }
+                for item in result
+            ]
             return Response(result, status=status.HTTP_200_OK)
         return Response({'error': 'related_job_not_found'}, status=status.HTTP_404_NOT_FOUND)
-
 
 
 class GetJobIncomeViewSet(APIView):
@@ -174,7 +178,6 @@ class GetJobIncomeViewSet(APIView):
         data = JobIncome.objects.filter()
         s_data = JobIncomeSerializer(data, many=True).data
         return Response(s_data, status=status.HTTP_200_OK)
-    
 
 
 class GetJobTimeViewSet(APIView):
@@ -183,7 +186,6 @@ class GetJobTimeViewSet(APIView):
         data = JobTime.objects.filter()
         s_data = JobTimeSerializer(data, many=True).data
         return Response(s_data, status=status.HTTP_200_OK)
-    
 
 
 class GetLatestJobsViewSet(APIView):
@@ -197,21 +199,21 @@ class GetLatestJobsViewSet(APIView):
             result = CheckCv(user, data)[:5:]
         else:
             result = JobSerializer(data, many=True).data[:5:]
-        
+
         result = [
-                    {
-                        'id': item['id'],
-                        'title': item['title'],
-                        'income_range': item['income_range'],
-                        'company_name': item['company_info']['company_name'],
-                        'work_time': item['work_time'],
-                        'state': item['state'],
-                        'city': item['city'],
-                        'slug': item['slug'],
-                        'image': item['image'],
-                        'created': item['created'],
-                        'cv_status': item.get('cv_status', None)
-                    }
-                    for item in result
-                ]
+            {
+                'id': item['id'],
+                'title': item['title'],
+                'income_range': item['income_range'],
+                'company_name': item['company_info']['company_name'],
+                'work_time': item['work_time'],
+                'state': item['state'],
+                'city': item['city'],
+                'slug': item['slug'],
+                'image': item['image'],
+                'created': item['created'],
+                'cv_status': item.get('cv_status', None)
+            }
+            for item in result
+        ]
         return Response(result, status=status.HTTP_200_OK)

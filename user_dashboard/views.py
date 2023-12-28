@@ -1,10 +1,15 @@
+from django.contrib.auth import get_user_model
+from django.core.cache import cache
+
 from custom_users.models import CustomUser, State
-from custom_users.serializers import UserSerializer
+from custom_users.serializers import UserSerializer, CodeSerializer
 from aloestekhdam.tokens import generate_tokens
 from django.conf import settings
 from rest_framework.views import APIView
 from django.db.models.functions import Length
-from .verify import send_verify_code
+
+from utils.otp import OTPManager
+from utils.regex import user_type_regex
 from .createslug import ConvertSlug
 from jobads.models import Job, JobCategory, JobFacilitie, JobSkill, CV
 from jobads.serializers import JobSerializer, CVSerializer, GetCVUserSerializer, JobLessSerializer, JobDemoSerializer
@@ -16,6 +21,102 @@ from json import loads
 from rest_framework.permissions import IsAuthenticated
 from random import randint
 from datetime import datetime
+from django.db.models import Q
+
+User = get_user_model()
+
+OTPManager = OTPManager()
+
+
+class SendOtpCode(APIView):
+
+    def post(self, request):
+        user_value = request.POST.get('user_type', 'default')
+        method = request.POST.get('method', None)
+
+        status_result, user_type_result = user_type_regex(user=user_value)
+        if not status_result:
+            return Response({'error': 'Invalid selection'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+
+            user_profile = User.objects.get(Q(phone_number=user_value) | Q(email=user_value))
+        except User.DoesNotExist:
+            if not method:
+                return Response({"You should select method because user dose not exist."},
+                                status=status.HTTP_400_BAD_REQUEST)
+
+            elif user_type_result == 'phone':
+                User.objects.create(phone_number=user_value, user_type=method)
+
+        user_data = {"value": user_value}
+        otp_key = f'otp_type:{user_value}'
+        if cache.has_key(otp_key):
+            cached_data = cache.get(otp_key)
+            cached_otp_token, cached_expiration_time = cached_data
+            time_remaining = max((cached_expiration_time - datetime.now()).total_seconds(), 0)
+            time_remaining_minutes = int(time_remaining // 60)
+            time_remaining_seconds = int(time_remaining % 60)
+            return Response(
+                {
+                    'error': 'OTP already generated. Please wait to resend OTP.',
+                    'time_remaining_minutes': time_remaining_minutes,
+                    'time_remaining_seconds': time_remaining_seconds
+                }, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        otp_token, expiration_time = OTPManager.generate_otp(user_data=user_data)
+        otp = str(randint(1000, 9000))
+
+        OTPManager.send_sms_to_user(phone_number=user_value, code=otp)
+        time_remaining = (expiration_time - datetime.now()).total_seconds()
+        time_remaining_minutes = int(time_remaining // 60)
+        time_remaining_seconds = int(time_remaining % 60)
+
+        if settings.DEBUG == True:
+            return Response({
+                'data': "Otp Token was send",
+                'expiration_time_minutes': time_remaining_minutes,
+                'expiration_time_seconds': time_remaining_seconds,
+                'otp_code(it just work on debug mode)': otp_token
+            })
+
+        return Response({
+            'data': "Otp Token was send",
+            'expiration_time_minutes': time_remaining_minutes,
+            'expiration_time_seconds': time_remaining_seconds
+        })
+
+
+class VerifyCode(APIView):
+    def post(self, request):
+        serializer = CodeSerializer(data=request.data)
+        if serializer.is_valid():
+
+            validated_user = serializer.validated_data['user']
+            validated_code = serializer.validated_data['code']
+
+            status_result, user_type_result = user_type_regex(user=validated_user)
+
+            user_data = {"value": validated_user}
+
+            if not status_result:
+                return Response({'error': 'Invalid selection'}, status=status.HTTP_400_BAD_REQUEST)
+            get_user_instance = User.objects.filter(Q(phone_number=validated_user) | Q(email=validated_user)).first()
+
+            if not get_user_instance:
+                return Response({'error': 'Invalid code'}, status=status.HTTP_400_BAD_REQUEST)
+            validate_otp_result = OTPManager.verify_otp(user_data=user_data, otp_code=validated_code)
+
+            if validate_otp_result[0] == False or None:
+                return Response({'error': "Code is wrong"}, status=status.HTTP_400_BAD_REQUEST)
+
+            access_token, refresh_token = JWTAuthentication.create_jwt(get_user_instance)
+
+            return Response({'data': 'Code is correct', 'access_token': access_token, 'refresh_token': refresh_token},
+                            status=status.HTTP_200_OK)
+
+        return Response({'error', 'not valid data'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class SignUpViewSet(APIView):
@@ -51,7 +152,6 @@ class LoginViewSet(APIView):
         except:
             return Response({'error': 'phone_number_or_verify_code_is_empty'}, status=status.HTTP_400_BAD_REQUEST)
         data = CustomUser.objects.filter(phone_number=phone_number).first()
-        code = send_verify_code()
         if data != None and check_password(password, data.password):
             tokens = JWTAuthentication.create_jwt(data)
             tokens = {
@@ -60,7 +160,6 @@ class LoginViewSet(APIView):
             }
             return Response(tokens, status=status.HTTP_200_OK)
         return Response({'error': 'phone_number_or_password_is_invalid'}, status=status.HTTP_401_UNAUTHORIZED)
-    
 
 
 class CheckLoginViewSet(APIView):
@@ -244,7 +343,7 @@ class JobModifyViewSet(APIView):
                             facilitie.append(facilitie_obj)
 
                 job_data = Job.objects.filter(owner=user, slug=slug).first()
-                
+
                 slug = ConvertSlug(title)
 
                 if job_data:
@@ -282,7 +381,6 @@ class JobModifyViewSet(APIView):
                     if status_facilitie:
                         job_data.facilitie.set(facilitie)
                     job_data.save()
-
 
                     return Response({'success': f'{title}_has_been_updated'}, status=status.HTTP_200_OK)
                 return Response({'error': 'job_not_found'}, status=status.HTTP_404_NOT_FOUND)
@@ -401,8 +499,6 @@ class EditUserProfileViewSet(APIView):
         return Response({'error': 'user_not_found'}, status=status.HTTP_404_NOT_FOUND)
 
 
-
-
 class AddCVToUserViewSet(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
@@ -435,7 +531,7 @@ class SendCVJobViewSet(APIView):
         user = request.user
         user_data = CustomUser.objects.filter(phone_number=user).first()
         cv_file = f"{settings.DEFAULT_IMAGE_URL}{user_data.user_cv}"
-        job_data = Job.objects.filter(slug=request.data['slug'],status=True).first()
+        job_data = Job.objects.filter(slug=request.data['slug'], status=True).first()
         if user_data and job_data and cv_file:
             if not user_data.has_company:
                 data = CV.objects.create(
@@ -512,18 +608,19 @@ class GetCompanyCVViewSet(APIView):
             if not method:
                 method = 'sent'
             if method == 'sent':
-                user_cv = CV.objects.filter(owner=user_data,status='sent').order_by('-id')
+                user_cv = CV.objects.filter(owner=user_data, status='sent').order_by('-id')
             elif method == 'confirmed':
-                user_cv = CV.objects.filter(owner=user_data,status='confirmed').order_by('-id')
+                user_cv = CV.objects.filter(owner=user_data, status='confirmed').order_by('-id')
             elif method == 'failed':
-                user_cv = CV.objects.filter(owner=user_data,status='failed').order_by('-id')
+                user_cv = CV.objects.filter(owner=user_data, status='failed').order_by('-id')
             else:
-                return Response({'error': {'accepted_methods':['sent','confirmed','failed']}}, status=status.HTTP_400_BAD_REQUEST)
-                
+                return Response({'error': {'accepted_methods': ['sent', 'confirmed', 'failed']}},
+                                status=status.HTTP_400_BAD_REQUEST)
+
             s_user_cv = CVSerializer(user_cv, many=True).data
             return Response(s_user_cv, status=status.HTTP_200_OK)
         return Response({'error': 'access_denied'}, status=status.HTTP_401_UNAUTHORIZED)
-    
+
 
 class EditCompanyCVViewSet(APIView):
     authentication_classes = [JWTAuthentication]
@@ -541,16 +638,16 @@ class EditCompanyCVViewSet(APIView):
                 id = request.data['id']
                 cv_status = request.data['cv_status']
             except Exception as e:
-                e = str(e).replace("'" , '' , -1)
+                e = str(e).replace("'", '', -1)
                 return Response({'error': f'{e}_is_required'}, status=status.HTTP_400_BAD_REQUEST)
             if cv_status in editable_status:
-                user_cv = CV.objects.filter(owner=user_data,id=id).first()
+                user_cv = CV.objects.filter(owner=user_data, id=id).first()
                 if user_cv:
                     user_cv.status = cv_status
                     user_cv.save()
                     return Response({'success': 'cv_edited'}, status=status.HTTP_200_OK)
         return Response({'error': 'access_denied'}, status=status.HTTP_401_UNAUTHORIZED)
-    
+
 
 class GetCompanyAdsViewSet(APIView):
     authentication_classes = [JWTAuthentication]
@@ -561,7 +658,8 @@ class GetCompanyAdsViewSet(APIView):
         job_data = Job.objects.filter(owner=user).order_by('-created')
         s_job_data = JobLessSerializer(job_data, many=True).data
         return Response(s_job_data, status=status.HTTP_200_OK)
-    
+
+
 class CompanyAdDemoViewSet(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]

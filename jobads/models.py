@@ -78,6 +78,7 @@ class JobCategory(models.Model):
     category = models.CharField(max_length=250)
     homepage = models.BooleanField(default=False)
 
+
     def __str__(self):
         return self.category
 

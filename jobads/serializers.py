@@ -164,3 +164,5 @@ class JobTimeSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         data = super(JobTimeSerializer, self).to_representation(instance)
         return data['time']
+
+

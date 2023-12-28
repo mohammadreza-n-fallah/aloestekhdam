@@ -38,3 +38,6 @@ class CompanySerializer(serializers.ModelSerializer):
             'phone_number',
             'user_permissions',
         ]
+class CodeSerializer(serializers.Serializer):
+    user = serializers.CharField()
+    code = serializers.IntegerField()

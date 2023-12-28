@@ -34,7 +34,7 @@ def image_upload_to(instance, filename):
 
 
 class CustomUser(AbstractBaseUser, PermissionsMixin):
-    username = models.CharField(max_length=250, unique=True)
+    username = models.CharField(max_length=250, unique=True, blank=True, null=True)
     password = models.CharField(max_length=250)
     full_name = models.CharField(max_length=250, blank=True)
     image = models.FileField(upload_to=image_upload_to, blank=True)
@@ -45,7 +45,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     user_cv = models.FileField(upload_to=cv_upload_to, blank=True)
     has_company = models.BooleanField(default=False)
     industry = models.CharField(max_length=250, default='')
-    state = models.ForeignKey('custom_users.State',blank=True,null=True ,on_delete=models.CASCADE)
+    state = models.ForeignKey('custom_users.State', blank=True, null=True, on_delete=models.CASCADE)
     phone_number_2 = models.CharField(max_length=250, default='')
     website = models.CharField(max_length=250, blank=True)
     company_telephone = models.CharField(max_length=250, default='')
